@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0e1a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Idle Hacker Tycoon</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <div id="app">
+        <!-- HEADER -->
+        <header id="header">
+            <div class="header-left">
+                <h1 class="logo">IDLE<span>HACKER</span></h1>
+                <span class="subtitle">TYCOON v0.1</span>
+            </div>
+            <div class="header-right">
+                <div class="stat-box">
+                    <span class="stat-label">Bits</span>
+                    <span id="display-bits" class="stat-value">0</span>
+                </div>
+                <div class="stat-box secondary">
+                    <span class="stat-label">/sec</span>
+                    <span id="display-per-sec" class="stat-value small">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main id="main">
+            <!-- HACK AREA -->
+            <section id="hack-section" class="card">
+                <div id="hack-target">
+                    <button id="btn-hack" aria-label="Hacken">
+                        <span class="hack-icon">&lt;/&gt;</span>
+                        <span class="hack-label">HACK</span>
+                    </button>
+                    <div id="hack-feedback"></div>
+                    <p class="hack-info"><span id="display-click-value">1</span> Bits / Klick</p>
+                </div>
+                <div class="level-bar">
+                    <div class="level-bar-fill" id="level-progress"></div>
+                    <span id="level-text" class="level-text">Lvl 1 — Script Kiddie</span>
+                </div>
+            </section>
+
+            <!-- TABS -->
+            <nav id="tabs">
+                <button class="tab-btn active" data-tab="generators">Server</button>
+                <button class="tab-btn" data-tab="upgrades">Upgrades</button>
+                <button class="tab-btn" data-tab="stats">Stats</button>
+            </nav>
+
+            <!-- TAB CONTENTS -->
+            <section id="tab-generators" class="tab-content active">
+                <div id="generators-list" class="list"></div>
+            </section>
+
+            <section id="tab-upgrades" class="tab-content">
+                <div id="upgrades-list" class="list"></div>
+            </section>
+
+            <section id="tab-stats" class="tab-content">
+                <div class="card stats-card">
+                    <h3>Statistiken</h3>
+                    <div class="stats-grid">
+                        <div><span>Bits gesamt</span><strong id="stat-total-earned">0</strong></div>
+                        <div><span>Klicks</span><strong id="stat-clicks">0</strong></div>
+                        <div><span>Spielzeit</span><strong id="stat-playtime">00:00</strong></div>
+                        <div><span>Offline Gewinn</span><strong id="stat-offline">0</strong></div>
+                    </div>
+                    <button id="btn-reset" class="btn btn-danger">Fortschritt löschen</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- TOAST -->
+        <div id="toast-container"></div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
