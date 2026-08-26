@@ -28,10 +28,13 @@ export class UIManager {
             hackFeedback: $('hack-feedback'),
             generatorsList: $('generators-list'),
             upgradesList: $('upgrades-list'),
+            prestigeContent: $('prestige-content'),
             statTotal: $('stat-total-earned'),
             statClicks: $('stat-clicks'),
             statPlaytime: $('stat-playtime'),
             statOffline: $('stat-offline'),
+            statPrestigePoints: $('stat-prestige-points'),
+            statPrestigeCount: $('stat-prestige-count'),
             btnReset: $('btn-reset'),
             toastContainer: $('toast-container'),
             tabs: [...document.querySelectorAll('.tab-btn')],
@@ -77,10 +80,16 @@ export class UIManager {
     }
 
     _subscribe() {
-        this.bus.on('economy:changed', () => this.renderEconomy());
+        this.bus.on('economy:changed', () => { this.renderEconomy(); this.renderPrestige(); });
         this.bus.on('click:changed', () => this.renderEconomy());
         this.bus.on('automation:bought', () => this.renderGenerators());
         this.bus.on('upgrade:bought', () => { this.renderUpgrades(); this.renderGenerators(); });
+        this.bus.on('prestige:changed', () => { this.renderPrestige(); this.renderEconomy(); this.renderGenerators(); });
+        this.bus.on('prestige:committed', ({ gain, multiplier }) => {
+            this.toast(`Root-Zugriff! +${gain} Keys · ×${multiplier.toFixed(2)} Multiplikator`);
+            this.renderAll();
+        });
+        this.bus.on('game:prestige', () => this.renderAll());
         this.bus.on('game:tick', () => this.renderTick());
         this.bus.on('game:initialized', ({ offlineEarning }) => {
             this.renderAll();
@@ -100,6 +109,7 @@ export class UIManager {
         this.renderEconomy();
         this.renderGenerators();
         this.renderUpgrades();
+        this.renderPrestige();
         this.renderTick();
     }
 
@@ -122,11 +132,90 @@ export class UIManager {
     }
 
     renderTick() {
-        // Nur Playtime hier, Bits kommen via economy:changed
         this.els.statPlaytime.textContent = Formatter.formatTime(this.game.playtimeSec);
         this.els.statTotal.textContent = Formatter.formatFull(this.game.economy.totalEarned);
         this.els.statClicks.textContent = Formatter.formatFull(this.game.economy.totalClicks);
         this.els.statOffline.textContent = Formatter.formatBits(this.game.getState().offlineEarning);
+        if (this.els.statPrestigePoints) this.els.statPrestigePoints.textContent = String(this.game.prestige.points);
+        if (this.els.statPrestigeCount) this.els.statPrestigeCount.textContent = String(this.game.prestige.totalPrestiges);
+        // Prestige Fortschritt live ticken
+        if (this.els.prestigeContent && document.getElementById('tab-prestige')?.classList.contains('active')) {
+            // Nur wenn Tab sichtbar, sonst alle 1s via economy:changed
+            this.renderPrestige();
+        }
+    }
+
+    renderPrestige() {
+        if (!this.els.prestigeContent) return;
+        const snap = this.game.prestige.snapshot();
+        const total = this.game.economy.totalEarned;
+        const threshold = GameConfig.prestige.threshold;
+        const progress = Math.min(1, total / threshold);
+        const pending = snap.pendingGain;
+        const nextMult = 1 + (snap.points + pending) * GameConfig.prestige.multiplierPerPoint;
+        const can = snap.canPrestige;
+
+        const fmt = (n) => Formatter.formatBits(n);
+        this.els.prestigeContent.innerHTML = `
+            <div class="prestige-card">
+                <div class="prestige-hero">
+                    <div class="prestige-icon">🔑</div>
+                    <div class="prestige-hero-text">
+                        <h3>Root-Zugriff</h3>
+                        <p>Setze dein Netzwerk zurück und erhalte <strong>Root-Keys</strong>.<br>Jeder Key gibt <strong>+${(GameConfig.prestige.multiplierPerPoint*100).toFixed(0)}% global</strong> auf Klick &amp; Server.</p>
+                    </div>
+                </div>
+                <div class="prestige-stats">
+                    <div class="prestige-stat"><span>Root-Keys</span><strong>${snap.points}</strong></div>
+                    <div class="prestige-stat"><span>Multiplikator</span><strong class="accent">×${snap.multiplier.toFixed(2)}</strong></div>
+                    <div class="prestige-stat"><span>Nächste Keys</span><strong>+${pending}</strong></div>
+                </div>
+                <div class="prestige-progress">
+                    <div class="prestige-progress-label"><span>Fortschritt</span><strong>${fmt(total)} / ${fmt(threshold)}</strong></div>
+                    <div class="prestige-bar"><div class="prestige-bar-fill" style="width:${(progress*100).toFixed(1)}%"></div></div>
+                </div>
+                <div class="prestige-hint">
+                    ${can ? `Bereit! Du erhältst <strong>+${pending} Keys</strong> → nächster Multiplikator <strong>×${nextMult.toFixed(2)}</strong>.` : `Sammle <strong>${fmt(Math.max(0, threshold - total))} Bits</strong> mehr (total) um Root-Zugriff freizuschalten.`}
+                    <br><span style="color:var(--text-dim)">Reset setzt Bits, Server &amp; Upgrades zurück — Root-Keys bleiben.</span>
+                </div>
+                <button id="btn-prestige" class="btn-prestige ${can ? 'ready' : ''}" ${can ? '' : 'disabled'}>
+                    ${can ? `ROOT-ZUGRIFF — +${pending} Keys freischalten` : `Gesperrt — ${fmt(threshold)} benötigt`}
+                </button>
+            </div>
+        `;
+        const btn = document.getElementById('btn-prestige');
+        if (btn) {
+            btn.addEventListener('click', () => {
+                if (!this.game.prestige.canPrestige()) return;
+                this._showPrestigeModal(pending, nextMult);
+            });
+        }
+    }
+
+    _showPrestigeModal(pending, nextMult) {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `
+            <div class="modal">
+                <h3>Root-Zugriff bestätigen?</h3>
+                <p>Du erhältst <strong>+${pending} Root-Keys</strong> und startest neu.<br>
+                Neuer Multiplikator: <strong>×${nextMult.toFixed(2)}</strong>.<br>
+                Alle Bits, Server und Upgrades werden zurückgesetzt.</p>
+                <div class="modal-actions">
+                    <button class="btn-modal secondary" data-action="cancel">Abbrechen</button>
+                    <button class="btn-modal primary" data-action="confirm">Bestätigen</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        const close = () => overlay.remove();
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+        overlay.querySelector('[data-action="cancel"]').addEventListener('click', close);
+        overlay.querySelector('[data-action="confirm"]').addEventListener('click', () => {
+            const ok = this.game.doPrestige();
+            close();
+            if (ok && navigator.vibrate) navigator.vibrate([20, 30, 20]);
+        });
     }
 
     renderGenerators() {

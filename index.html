@@ -57,6 +57,7 @@
             <nav id="tabs">
                 <button class="tab-btn active" data-tab="generators">Server</button>
                 <button class="tab-btn" data-tab="upgrades">Upgrades</button>
+                <button class="tab-btn" data-tab="prestige">Root</button>
                 <button class="tab-btn" data-tab="stats">Stats</button>
             </nav>
 
@@ -69,6 +70,10 @@
                 <div id="upgrades-list" class="list"></div>
             </section>
 
+            <section id="tab-prestige" class="tab-content">
+                <div id="prestige-content"></div>
+            </section>
+
             <section id="tab-stats" class="tab-content">
                 <div class="card stats-card">
                     <h3>Statistiken</h3>
@@ -77,6 +82,8 @@
                         <div><span>Klicks</span><strong id="stat-clicks">0</strong></div>
                         <div><span>Spielzeit</span><strong id="stat-playtime">00:00</strong></div>
                         <div><span>Offline Gewinn</span><strong id="stat-offline">0</strong></div>
+                        <div><span>Root-Keys</span><strong id="stat-prestige-points">0</strong></div>
+                        <div><span>Prestiges</span><strong id="stat-prestige-count">0</strong></div>
                     </div>
                     <button id="btn-reset" class="btn btn-danger">Fortschritt löschen</button>
                 </div>

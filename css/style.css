@@ -467,6 +467,120 @@ body {
 @keyframes toastOut { to { opacity: 0; transform: translateY(-8px); } }
 
 /* === RESPONSIVE ADJUSTMENTS === */
+/* === PRESTIGE === */
+.prestige-card {
+    background: linear-gradient(135deg, #0f1a2e 0%, #131a2e 55%, #1a0f2e 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+}
+.prestige-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(600px 200px at 50% 0%, rgba(168,85,247,0.12), transparent 70%);
+    pointer-events: none;
+}
+.prestige-hero {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+}
+.prestige-icon {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    background: #0a0e1a;
+    border: 1px solid #2a1e4a;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+    box-shadow: 0 0 20px rgba(168,85,247,0.25);
+    flex-shrink: 0;
+}
+.prestige-hero-text h3 { font-size: 1rem; font-weight: 800; letter-spacing: 0.04em; }
+.prestige-hero-text p { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; line-height: 1.4; }
+.prestige-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    position: relative;
+}
+.prestige-stat {
+    background: rgba(10,14,26,0.9);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 6px;
+    text-align: center;
+}
+.prestige-stat span { display: block; font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
+.prestige-stat strong { display: block; font-size: 1rem; font-weight: 800; color: #c084fc; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.prestige-stat strong.accent { color: var(--accent); }
+.prestige-progress { position: relative; }
+.prestige-progress-label { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-dim); margin-bottom: 6px; }
+.prestige-progress-label strong { color: var(--text); }
+.prestige-bar { height: 14px; background: #0a0e1a; border: 1px solid var(--border); border-radius: 99px; overflow: hidden; }
+.prestige-bar-fill { height: 100%; background: linear-gradient(90deg, #7c3aed, #c084fc); border-radius: 99px; transition: width 0.4s ease; }
+.prestige-hint { font-size: 0.7rem; color: var(--text-dim); line-height: 1.5; position: relative; }
+.prestige-hint strong { color: #c084fc; }
+.btn-prestige {
+    width: 100%;
+    padding: 14px 16px;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    min-height: 52px;
+    transition: all 0.2s;
+    position: relative;
+    background: #1e2a4a;
+    color: var(--text-dim);
+}
+.btn-prestige.ready {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: #fff;
+    box-shadow: 0 0 24px rgba(168,85,247,0.4), 0 4px 16px rgba(0,0,0,0.3);
+}
+.btn-prestige.ready:active { transform: scale(0.98); filter: brightness(1.1); }
+.btn-prestige:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 16px;
+    animation: modalIn 0.2s ease;
+}
+@keyframes modalIn { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    max-width: 360px;
+    width: 100%;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+}
+.modal h3 { font-size: 1.05rem; margin-bottom: 8px; }
+.modal p { font-size: 0.82rem; color: var(--text-dim); line-height: 1.5; margin-bottom: 16px; }
+.modal p strong { color: #c084fc; }
+.modal-actions { display: flex; gap: 10px; }
+.btn-modal { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; min-height: 44px; }
+.btn-modal.secondary { background: #0a0e1a; color: var(--text); border: 1px solid var(--border); }
+.btn-modal.primary { background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff; }
+
 @media (min-width: 600px) {
     #main { padding: 16px; gap: 16px; }
 }

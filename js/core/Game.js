@@ -10,6 +10,7 @@ import { EconomySystem } from '../systems/EconomySystem.js';
 import { ClickSystem } from '../systems/ClickSystem.js';
 import { AutomationSystem } from '../systems/AutomationSystem.js';
 import { UpgradeSystem } from '../systems/UpgradeSystem.js';
+import { PrestigeSystem } from '../systems/PrestigeSystem.js';
 
 export class Game {
     constructor() {
@@ -19,6 +20,7 @@ export class Game {
         this.click = new ClickSystem(this.bus, this.economy);
         this.automation = new AutomationSystem(this.bus, this.economy);
         this.upgrades = new UpgradeSystem(this.bus, this.economy, this.automation);
+        this.prestige = new PrestigeSystem(this.bus, this.economy);
 
         this.playtimeSec = 0;
         this.startTime = performance.now();
@@ -35,11 +37,22 @@ export class Game {
     }
 
     init() {
-        const data = this.save.load();
+        // Migration: v01 -> v02 — falls v02 leer aber v01 existiert
+        let data = this.save.load();
+        if (!data) {
+            try {
+                const legacy = localStorage.getItem('idle_hacker_tycoon_v01');
+                if (legacy) {
+                    data = JSON.parse(legacy);
+                    // Sofort auf neuen Key migrieren (beim nächsten persist)
+                }
+            } catch {}
+        }
         if (data) {
             this.economy.load(data.economy);
             this.automation.load(data.automation);
             this.upgrades.load(data.upgrades);
+            this.prestige.load(data.prestige);
             this.playtimeSec = data.playtimeSec || 0;
             // Offline progress
             if (data.savedAt) {
@@ -82,15 +95,37 @@ export class Game {
             economy: this.economy.serialize(),
             automation: this.automation.serialize(),
             upgrades: this.upgrades.serialize(),
+            prestige: this.prestige.serialize(),
             playtimeSec: this.playtimeSec,
         });
     }
 
-    reset() {
-        this.save.clear();
+    /**
+     * Prestige (Root-Zugriff): reset Economy/Automation/Upgrades, behält prestige Punkte.
+     * @returns {boolean} true bei Erfolg
+     */
+    doPrestige() {
+        const result = this.prestige.commit();
+        if (!result) return false;
+        // Reset spielrelevante Systeme, aber nicht prestige selbst
         this.economy.reset();
         this.automation.reset();
         this.upgrades.reset();
+        // Click/Automation hören prestige:changed bereits und setzen Multiplier
+        this.bus.emit('game:prestige', result);
+        this.bus.emit('economy:changed', this.economy.snapshot());
+        this.persist();
+        return true;
+    }
+
+    reset() {
+        this.save.clear();
+        // Legacy Key auch löschen
+        try { localStorage.removeItem('idle_hacker_tycoon_v01'); } catch {}
+        this.economy.reset();
+        this.automation.reset();
+        this.upgrades.reset();
+        this.prestige.resetHard();
         this.playtimeSec = 0;
         this._offlineEarning = 0;
         this.bus.emit('game:reset', null);
@@ -103,6 +138,8 @@ export class Game {
             perSec: this.automation.getTotalPerSec(),
             playtimeSec: this.playtimeSec,
             offlineEarning: this._offlineEarning,
+            prestige: this.prestige.snapshot(),
+            clickValue: this.click.getClickValue(),
         };
     }
 }

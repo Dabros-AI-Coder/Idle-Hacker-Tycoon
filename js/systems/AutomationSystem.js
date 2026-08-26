@@ -16,6 +16,7 @@ export class AutomationSystem {
         /** @type {Map<string, number>} Generator-spezifische Multiplikatoren */
         this.genMultipliers = new Map();
         this.globalMultiplier = 1;
+        this.prestigeMultiplier = 1;
 
         bus.on('upgrade:applied', ({ effect }) => {
             if (effect.type === 'generator_mult') {
@@ -25,6 +26,12 @@ export class AutomationSystem {
             if (effect.type === 'global_mult') {
                 this.globalMultiplier *= effect.value;
             }
+        });
+        bus.on('prestige:changed', ({ multiplier }) => {
+            this.prestigeMultiplier = multiplier || 1;
+        });
+        bus.on('prestige:committed', ({ multiplier }) => {
+            this.prestigeMultiplier = multiplier || 1;
         });
     }
 
@@ -54,7 +61,7 @@ export class AutomationSystem {
             const count = this.owned.get(def.id) || 0;
             if (count === 0) continue;
             const genMult = this.genMultipliers.get(def.id) || 1;
-            total += count * def.basePerSec * genMult * this.globalMultiplier;
+            total += count * def.basePerSec * genMult * this.globalMultiplier * this.prestigeMultiplier;
         }
         return total;
     }
@@ -64,7 +71,7 @@ export class AutomationSystem {
         if (!def) return 0;
         const count = this.owned.get(id) || 0;
         const genMult = this.genMultipliers.get(id) || 1;
-        return count * def.basePerSec * genMult * this.globalMultiplier;
+        return count * def.basePerSec * genMult * this.globalMultiplier * this.prestigeMultiplier;
     }
 
     getOwned(id) { return this.owned.get(id) || 0; }

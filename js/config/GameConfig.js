@@ -3,13 +3,22 @@
  * Modular: jede Balance-Änderung nur hier.
  */
 export const GameConfig = Object.freeze({
-    saveKey: 'idle_hacker_tycoon_v01',
+    saveKey: 'idle_hacker_tycoon_v02',
     saveIntervalMs: 5000,
     offlineCapHours: 12,
     tickRate: 10, // Ticks pro Sekunde für passive Income
 
     startingBits: 0,
     baseClickValue: 1,
+
+    prestige: {
+        // Ab 1M totalEarned kann prestiget werden
+        threshold: 1_000_000,
+        // 1 Punkt pro 1M (aufgerundet via gainDivisor)
+        gainDivisor: 1_000_000,
+        // +10% global auf Klick + Generatoren pro Punkt
+        multiplierPerPoint: 0.10,
+    },
 
     generators: [
         {

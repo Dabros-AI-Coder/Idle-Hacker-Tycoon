@@ -13,6 +13,7 @@ export class ClickSystem {
         this.economy = economy;
         this.clickMultiplier = 1;
         this.flatBonus = 0;
+        this.prestigeMultiplier = 1;
 
         bus.on('upgrade:applied', ({ effect }) => {
             if (effect.type === 'click_mult') {
@@ -20,10 +21,17 @@ export class ClickSystem {
                 this.bus.emit('click:changed', { value: this.getClickValue() });
             }
         });
+        bus.on('prestige:changed', ({ multiplier }) => {
+            this.prestigeMultiplier = multiplier || 1;
+            this.bus.emit('click:changed', { value: this.getClickValue() });
+        });
+        bus.on('prestige:committed', ({ multiplier }) => {
+            this.prestigeMultiplier = multiplier || 1;
+        });
     }
 
     getClickValue() {
-        return (GameConfig.baseClickValue + this.flatBonus) * this.clickMultiplier;
+        return (GameConfig.baseClickValue + this.flatBonus) * this.clickMultiplier * this.prestigeMultiplier;
     }
 
     hack() {
