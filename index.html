@@ -25,6 +25,9 @@
     <link rel="manifest" href="manifest.json" />
     <title>Idle Hacker Tycoon</title>
     <link rel="stylesheet" href="css/style.css" />
+    <!-- Plausible Analytics (privacy-friendly, kein Cookie-Banner nötig) -->
+    <!-- Domain in data-domain anpassen nach Deployment auf eigenem Domain; auf GitHub Pages eigenständig nutzbar. -->
+    <script defer data-domain="dabros-ai-coder.github.io" src="https://plausible.io/js/script.js"></script>
 </head>
 <body>
     <!-- HAUPTMENÜ (deckt die App bis "Spielen" ab) -->
@@ -36,8 +39,13 @@
             <div id="menu-main" class="menu-panel">
                 <button id="menu-play" class="menu-btn primary">▶&nbsp; SPIELEN</button>
                 <button id="menu-options" class="menu-btn">⚙&nbsp; OPTIONEN</button>
+                <button id="menu-install" class="menu-btn install-btn hidden">📲&nbsp; ALS APP INSTALLIEREN</button>
                 <button id="menu-quit" class="menu-btn">⏻&nbsp; BEENDEN</button>
             </div>
+
+            <p id="menu-ios-hint" class="menu-ios-hint hidden">
+                📱 <strong>Als App installieren:</strong> Tippe <strong>Teilen →</strong> <strong>Zum Home-Bildschirm</strong> in Safari.
+            </p>
 
             <div id="menu-options-panel" class="menu-panel hidden">
                 <label class="option-row" for="opt-haptics">

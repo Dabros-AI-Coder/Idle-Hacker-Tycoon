@@ -5,6 +5,7 @@
  */
 import { GameConfig } from '../config/GameConfig.js';
 import { Options } from '../core/Options.js';
+import { InstallHandler } from '../core/InstallHandler.js';
 import { haptic } from '../utils/haptics.js';
 
 export class MainMenu {
@@ -22,6 +23,21 @@ export class MainMenu {
         document.getElementById('menu-quit').addEventListener('click', () => this._quit());
         document.getElementById('menu-back').addEventListener('click', () => this._showMain());
         document.getElementById('opt-reset-tutorial').addEventListener('click', () => this._resetTutorial());
+
+        // PWA-Install-Button
+        this.installHandler = new InstallHandler();
+        this.installBtn = document.getElementById('menu-install');
+        if (this.installHandler.canInstall) {
+            this.installBtn.classList.remove('hidden');
+            this.installBtn.addEventListener('click', () => this._install());
+        } else if (this.installHandler.isInstalled) {
+            this.installBtn.classList.add('hidden');
+        }
+        // iOS: manuellen Hinweis zeigen (kein beforeinstallprompt)
+        this._iosHint = document.getElementById('menu-ios-hint');
+        if (/iPhone|iPad|iPod/.test(navigator.userAgent) && !window.navigator.standalone) {
+            if (this._iosHint) this._iosHint.classList.remove('hidden');
+        }
 
         // Optionen initial in die Checkboxen spiegeln
         document.getElementById('opt-haptics').checked = Options.get('haptics');
@@ -79,6 +95,23 @@ export class MainMenu {
         haptic(10);
         this.optionsPanel.classList.add('hidden');
         this.mainPanel.classList.remove('hidden');
+    }
+
+    async _install() {
+        haptic(20);
+        this.installBtn.disabled = true;
+        this.installBtn.textContent = '⏳ Wird installiert…';
+        const result = await this.installHandler.install();
+        if (result === 'accepted') {
+            this.installBtn.textContent = '✓ Installiert!';
+            this._setStatus('App wird installiert…');
+        } else {
+            this.installBtn.disabled = false;
+            this.installBtn.textContent = '📲  ALS APP INSTALLIEREN';
+            if (result === 'unavailable') {
+                this._setStatus('Installation nicht verfügbar — nutze den Browser-Teilen-Button.');
+            }
+        }
     }
 
     /**

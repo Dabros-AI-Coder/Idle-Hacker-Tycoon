@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Playable-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.4.2-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-0.4.3-00ff88?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
   <img src="https://img.shields.io/badge/Vanilla_JS-ES_Modules-ffcc00?style=for-the-badge" alt="Vanilla JS" />
 </p>

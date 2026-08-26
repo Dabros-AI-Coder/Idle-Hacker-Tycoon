@@ -503,6 +503,10 @@ body {
 .menu-opt-btn { margin-top: 2px; }
 .menu-opt-btn.secondary { background: #0a0e1a; color: var(--text); border: 1px solid var(--border); }
 
+/* PWA Install */
+.install-btn { border-color: rgba(0,255,136,0.35) !important; color: #00ff88 !important; }
+.menu-ios-hint { font-size: 0.75rem; color: var(--text-dim); text-align: center; margin: 0; line-height: 1.5; padding: 0 8px; }
+
 /* Save Export/Import Modal */
 .save-textarea {
     width: 100%;

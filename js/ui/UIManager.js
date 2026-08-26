@@ -5,6 +5,7 @@
 import { GameConfig } from '../config/GameConfig.js';
 import { Formatter } from '../utils/Formatter.js';
 import { haptic } from '../utils/haptics.js';
+import { buildFeedbackUrl } from '../utils/feedback.js';
 
 export class UIManager {
     /** @param {import('../core/Game.js').Game} game */
@@ -42,6 +43,7 @@ export class UIManager {
             tutorialHint: $('tutorial-hint'),
             tutorialText: $('tutorial-text'),
             btnTutorialSkip: $('btn-tutorial-skip'),
+            feedbackLink: $('feedback-link'),
             toastContainer: $('toast-container'),
             tabs: [...document.querySelectorAll('.tab-btn')],
             tabContents: [...document.querySelectorAll('.tab-content')],
@@ -115,7 +117,11 @@ export class UIManager {
         });
         this.bus.on('game:reset', () => this.renderAll());
         // Tutorial: bei relevanten Events weiterschalten
-        this.bus.on('game:initialized', () => this._initTutorial());
+        this.bus.on('game:initialized', () => {
+            this._initTutorial();
+            // Feedback-Link dynamisch mit System-Info befüllen
+            if (this.els.feedbackLink) this.els.feedbackLink.href = buildFeedbackUrl();
+        });
         this.bus.on('click:hacked', () => this._updateTutorial());
         this.bus.on('automation:bought', () => this._updateTutorial());
         this.bus.on('upgrade:bought', () => this._updateTutorial());
