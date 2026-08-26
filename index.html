@@ -8,6 +8,17 @@
     <meta name="apple-mobile-web-app-title" content="Hacker Tycoon" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="description" content="Vom Script Kiddie zum Root God — Idle Hacker Tycoon im Browser." />
+    <!-- Open Graph / Social Preview -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Idle Hacker Tycoon" />
+    <meta property="og:title" content="Idle Hacker Tycoon" />
+    <meta property="og:description" content="Vom Script Kiddie zum Root God — Idle-Hacking direkt im Browser. Offline-fähig, installierbar, kostenlos." />
+    <meta property="og:url" content="https://dabros-ai-coder.github.io/Idle-Hacker-Tycoon/" />
+    <meta property="og:image" content="https://dabros-ai-coder.github.io/Idle-Hacker-Tycoon/assets/icon-512.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Idle Hacker Tycoon" />
+    <meta name="twitter:description" content="Vom Script Kiddie zum Root God — Idle-Hacking direkt im Browser." />
+    <meta name="twitter:image" content="https://dabros-ai-coder.github.io/Idle-Hacker-Tycoon/assets/icon-512.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png" />
@@ -53,6 +64,12 @@
                 </div>
             </section>
 
+            <!-- TUTORIAL HINT -->
+            <div id="tutorial-hint" class="tutorial-hint hidden">
+                <span id="tutorial-text"></span>
+                <button id="btn-tutorial-skip" aria-label="Tutorial überspringen">✕</button>
+            </div>
+
             <!-- TABS -->
             <nav id="tabs">
                 <button class="tab-btn active" data-tab="generators">Server</button>
@@ -89,6 +106,7 @@
                         <button id="btn-export" class="btn">💾 Spielstand exportieren</button>
                         <button id="btn-import" class="btn">📥 Spielstand importieren</button>
                     </div>
+                    <a id="feedback-link" class="feedback-link" href="https://github.com/Dabros-AI-Coder/Idle-Hacker-Tycoon/issues" target="_blank" rel="noopener">🐞 Bug gefunden oder Idee? Als Issue melden</a>
                     <button id="btn-reset" class="btn btn-danger">Fortschritt löschen</button>
                 </div>
             </section>

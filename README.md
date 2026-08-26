@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Playable-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.4.0-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-0.4.1-00ff88?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
   <img src="https://img.shields.io/badge/Vanilla_JS-ES_Modules-ffcc00?style=for-the-badge" alt="Vanilla JS" />
 </p>
@@ -48,6 +48,7 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | **⏯️ Hintergrund-Betrieb** | Logik-Tick läuft via `setInterval` weiter, auch wenn das Tab minimiert ist; suspendierte Zeit wird beim Rückkehren gutgeschrieben |
 | **📴 Offline-fähig** | Service Worker (Network-First) — Updates kommen sofort an, offline dient der letzte Stand |
 | **📱 Mobile-First** | `100dvh`, `safe-area-inset`, `clamp()`, 44px Touch-Targets, No-Zoom |
+| **🎓 Onboarding** | 3-stufiges Tutorial für neue Spieler (HACK → erster Server → Idle-Loop erklärt), überspringbar; Bestandsspieler werden automatisch erkannt |
 | **⚡ Performance** | Fixer Tick (10/s) + `requestAnimationFrame` fürs Rendering, kein Framework-Overhead |
 
 ### Generatoren
@@ -114,6 +115,12 @@ npx http-server . -p 8080
 ```
 
 > `index.html` direkt via `file://` öffnet **nicht** — Browser blockieren ES-Module ohne HTTP.
+
+### Tests & Balance-Simulation
+```bash
+node tests/run.js            # Unit-Tests (23 Tests: Economy, Automation, Prestige, Migration, Export/Import)
+node js/utils/simulate.js    # Headless Balance-Simulation (30 min Standard)
+```
 
 ### Variante B — GitHub Pages
 `Settings` → `Pages` → `Source: main / root` → Link ist oben im Header.
@@ -231,6 +238,7 @@ Die installierte App läuft ohne Browser-UI, blockiert Text-Manipulation und pr�
 - [x] **v0.3.2** — Hintergrund-Betrieb, Offline-Catch-Up mit Modal, Service Worker + Update-Fix
 - [x] **v0.3.3** — Save-Schema-Versionierung (Migration) + Export/Import
 - [x] **v0.4** — Balance-Tiefe: 8 Generatoren, 11 Upgrades, Level bis 1B, Prestige-Meilensteine
+- [x] **v0.4.1** — Open-Beta-Polish: Onboarding, Test-Suite, Social-Preview
 - [ ] **v0.4** — Hack-Minigame (Timing/Pattern)
 - [ ] **v0.5** — Achievements & Daily Rewards
 - [ ] **v0.6** — Sound/Musik + Themes (Light/Dark/Hacker-Green)

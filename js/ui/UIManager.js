@@ -38,6 +38,9 @@ export class UIManager {
             btnReset: $('btn-reset'),
             btnExport: $('btn-export'),
             btnImport: $('btn-import'),
+            tutorialHint: $('tutorial-hint'),
+            tutorialText: $('tutorial-text'),
+            btnTutorialSkip: $('btn-tutorial-skip'),
             toastContainer: $('toast-container'),
             tabs: [...document.querySelectorAll('.tab-btn')],
             tabContents: [...document.querySelectorAll('.tab-content')],
@@ -73,6 +76,9 @@ export class UIManager {
         this.els.btnExport.addEventListener('click', () => this._showSaveModal('export'));
         this.els.btnImport.addEventListener('click', () => this._showSaveModal('import'));
 
+        // Tutorial
+        this.els.btnTutorialSkip.addEventListener('click', () => this._finishTutorial(true));
+
         // Verhindere Zoom bei Doppel-Tap auf iOS (zusätzlich zu viewport)
         document.addEventListener('touchstart', (e) => {
             if (e.touches.length > 1) e.preventDefault();
@@ -107,6 +113,11 @@ export class UIManager {
             }
         });
         this.bus.on('game:reset', () => this.renderAll());
+        // Tutorial: bei relevanten Events weiterschalten
+        this.bus.on('game:initialized', () => this._initTutorial());
+        this.bus.on('click:hacked', () => this._updateTutorial());
+        this.bus.on('automation:bought', () => this._updateTutorial());
+        this.bus.on('upgrade:bought', () => this._updateTutorial());
         // Update verfügbar (nur als installierte App via UpdateManager onlyStandalone)
         this.bus.on('update:available', ({ remote, current }) => this._showUpdateModal(remote, current));
         this.bus.on('update:pending', () => {
@@ -251,6 +262,76 @@ export class UIManager {
             close();
             if (ok && navigator.vibrate) navigator.vibrate([20, 30, 20]);
         });
+    }
+
+    // === Tutorial (nur für neue Spieler) ===
+
+    _loadTutorialFlag() {
+        try { return localStorage.getItem('idle_hacker_tutorial_done') === '1'; } catch { return true; }
+    }
+    _saveTutorialFlag() {
+        try { localStorage.setItem('idle_hacker_tutorial_done', '1'); } catch {}
+    }
+
+    _initTutorial() {
+        this._tutorialDone = this._loadTutorialFlag();
+        // Bestehende Spieler überspringen den Tutorial automatisch
+        if (!this._tutorialDone && this._hasRealProgress()) {
+            this._finishTutorial(false);
+            return;
+        }
+        this._updateTutorial();
+    }
+
+    _hasRealProgress() {
+        const g = this.game;
+        return g.economy.totalClicks > 15
+            || g.automation.getAllStates().some(s => s.owned > 0)
+            || g.upgrades.purchased.size > 0
+            || g.prestige.totalPrestiges > 0;
+    }
+
+    /** @returns {{id:string, text:string, done:()=>boolean}[]} */
+    _tutorialSteps() {
+        return [
+            {
+                id: 'hack',
+                text: '<strong>👆 Tippe HACK</strong>, um deine ersten Bits zu sammeln!',
+                done: () => this.game.economy.totalClicks >= 5,
+            },
+            {
+                id: 'first_server',
+                text: '<strong>💻 Stark!</strong> Kaufe jetzt einen <strong>Script Kiddie</strong> — dein Netzwerk arbeitet für dich.',
+                done: () => this.game.automation.getOwned('script_kiddie') > 0,
+            },
+            {
+                id: 'idle_loop',
+                text: '<strong>⚡ Läuft!</strong> Deine Server verdienen jetzt <strong>Bits/sec</strong> — auch offline. Im <strong>Upgrades</strong>-Tab gibt\'s Boosts.',
+                done: () => this.game.upgrades.purchased.size > 0,
+                optional: true,
+            },
+        ];
+    }
+
+    _updateTutorial() {
+        if (!this._tutorialDone) {
+            const steps = this._tutorialSteps();
+            const current = steps.find(s => !s.done());
+            if (!current) {
+                this._finishTutorial(false);
+                return;
+            }
+            this.els.tutorialText.innerHTML = current.text;
+            this.els.tutorialHint.classList.remove('hidden');
+        }
+    }
+
+    _finishTutorial(manual) {
+        if (this._tutorialDone) return;
+        this._tutorialDone = true;
+        this._saveTutorialFlag();
+        this.els.tutorialHint.classList.add('hidden');
+        if (manual) this.toast('Tutorial übersprungen');
     }
 
     /**

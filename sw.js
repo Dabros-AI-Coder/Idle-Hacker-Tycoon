@@ -11,6 +11,8 @@ const PRECACHE_URLS = [
     './css/style.css',
     './js/main.js',
     './version.json',
+    './assets/icon-192.png',
+    './assets/icon-512.png',
 ];
 
 self.addEventListener('install', (event) => {
