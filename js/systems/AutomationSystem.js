@@ -20,6 +20,8 @@ export class AutomationSystem {
         /** Multiplikator aus aktiven Prestige-Meilensteinen (permanent) */
         this.milestoneMultiplier = 1;
 
+        this.costReduction = 1;
+
         bus.on('upgrade:applied', ({ effect }) => {
             if (effect.type === 'generator_mult') {
                 const cur = this.genMultipliers.get(effect.target) || 1;
@@ -27,6 +29,9 @@ export class AutomationSystem {
             }
             if (effect.type === 'global_mult') {
                 this.globalMultiplier *= effect.value;
+            }
+            if (effect.type === 'cost_reduction') {
+                this.costReduction *= effect.value;
             }
         });
         bus.on('prestige:changed', ({ multiplier, totalPrestiges }) => {
@@ -56,7 +61,7 @@ export class AutomationSystem {
         const def = GameConfig.getGenerator(id);
         if (!def) return Infinity;
         const owned = this.owned.get(id) || 0;
-        return Math.floor(def.baseCost * Math.pow(def.costMultiplier, owned));
+        return Math.floor(def.baseCost * Math.pow(def.costMultiplier * this.costReduction, owned));
     }
 
     canBuy(id) {
@@ -108,7 +113,7 @@ export class AutomationSystem {
         for (const [k, v] of this.owned) o[k] = v;
         const m = {};
         for (const [k, v] of this.genMultipliers) m[k] = v;
-        return { owned: o, genMultipliers: m, globalMultiplier: this.globalMultiplier };
+        return { owned: o, genMultipliers: m, globalMultiplier: this.globalMultiplier, costReduction: this.costReduction };
     }
 
     load(data) {
@@ -116,11 +121,13 @@ export class AutomationSystem {
         if (data.owned) for (const [k, v] of Object.entries(data.owned)) this.owned.set(k, Number(v) || 0);
         if (data.genMultipliers) for (const [k, v] of Object.entries(data.genMultipliers)) this.genMultipliers.set(k, Number(v) || 1);
         if (data.globalMultiplier) this.globalMultiplier = Number(data.globalMultiplier) || 1;
+        if (data.costReduction) this.costReduction = Number(data.costReduction) || 1;
     }
 
     reset() {
         for (const k of this.owned.keys()) this.owned.set(k, 0);
         this.genMultipliers.clear();
         this.globalMultiplier = 1;
+        this.costReduction = 1;
     }
 }

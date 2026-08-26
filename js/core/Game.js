@@ -34,8 +34,16 @@ export class Game {
         this._saveTimer = 0;
         this._offlineEarning = 0;
         this._hiddenAt = null;
+        this.offlineCapMultiplier = 1;
         /** true sobald init() gelaufen ist (erst dann darf persistiert werden) */
         this.initialized = false;
+
+        // Offline-Cap-Multiplikator via Upgrades
+        this.bus.on('upgrade:applied', ({ effect }) => {
+            if (effect.type === 'offline_cap_mult') {
+                this.offlineCapMultiplier *= effect.value;
+            }
+        });
 
         this.loop = new GameLoop(GameConfig.tickRate, (dt) => this.tick(dt));
 
@@ -104,6 +112,7 @@ export class Game {
         this.upgrades.load(data.upgrades);
         this.prestige.load(data.prestige);
         this.playtimeSec = data.playtimeSec || 0;
+        this.offlineCapMultiplier = data.offlineCapMultiplier || 1;
         if (data.savedAt) {
             const elapsedSec = (Date.now() - data.savedAt) / 1000;
             this._grantOffline(elapsedSec, true);
@@ -133,7 +142,8 @@ export class Game {
      */
     _grantOffline(elapsedSec, isInit) {
         if (!Options.get('offlineEarnings')) return;
-        const capped = Math.min(elapsedSec, GameConfig.offlineCapHours * 3600);
+        const maxHours = GameConfig.offlineCapHours * this.offlineCapMultiplier;
+        const capped = Math.min(elapsedSec, maxHours * 3600);
         if (capped < GameConfig.offlineCatchUpMinSec) return;
         const perSec = this.automation.getTotalPerSec();
         if (perSec <= 0) return;
@@ -178,6 +188,7 @@ export class Game {
             upgrades: this.upgrades.serialize(),
             prestige: this.prestige.serialize(),
             playtimeSec: this.playtimeSec,
+            offlineCapMultiplier: this.offlineCapMultiplier,
         });
     }
 
@@ -259,6 +270,7 @@ export class Game {
         this.playtimeSec = 0;
         this._offlineEarning = 0;
         this._hiddenAt = null;
+        this.offlineCapMultiplier = 1;
         this.bus.emit('game:reset', null);
         this.bus.emit('economy:changed', this.economy.snapshot());
     }
