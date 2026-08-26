@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Playable-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.3.1-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-0.3.2-00ff88?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
   <img src="https://img.shields.io/badge/Vanilla_JS-ES_Modules-ffcc00?style=for-the-badge" alt="Vanilla JS" />
 </p>
@@ -40,11 +40,13 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | **📈 Level-System** | 6 Ränge von *Script Kiddie* bis *Root God* mit Progress-Bar |
 | **👑 Prestige (Root-Zugriff)** | Ab 1M `totalEarned` resetten → 1 Punkt pro 1M, **+10 % Global-Multiplikator pro Punkt**, permanent |
 | **📱 PWA** | Installierbar (`manifest.json`, Icons), Standalone-Erkennung, Browser-Schutz (kein Rechtsklick/Markieren/Kopieren in der App) |
-| **🔄 Auto-Update-Check** | Installierte App prüft `version.json` (Cache-Bypass) → Bestätigungsdialog bei neuer Version; „Später" gilt nur pro Session |
+| **🔄 Auto-Update-Check** | Installierte App prüft `version.json` (Cache-Bypass) → Bestätigungsdialog bei neuer Version; „Später" gilt nur pro Session; Schleifenschutz falls das CDN die neue Version noch nicht ausliefert |
 | **💾 Persistenz** | Auto-Save alle 5s + `visibilitychange` + `beforeunload`, `localStorage` |
-| **🌙 Offline-Progress** | Bis zu 12h passives Einkommen nachrechnen beim Wiederkommen |
+| **🌙 Offline-Progress** | Bis zu 12h passives Einkommen nachrechnen — beim Spielstart mit *Willkommen-zurück*-Modal, bei Tab-Rückkehr als Catch-Up (>10s Abwesenheit) |
+| **⏯️ Hintergrund-Betrieb** | Logik-Tick läuft via `setInterval` weiter, auch wenn das Tab minimiert ist; suspendierte Zeit wird beim Rückkehren gutgeschrieben |
+| **📴 Offline-fähig** | Service Worker (Network-First) — Updates kommen sofort an, offline dient der letzte Stand |
 | **📱 Mobile-First** | `100dvh`, `safe-area-inset`, `clamp()`, 44px Touch-Targets, No-Zoom |
-| **⚡ Performance** | Fixer Tick (10/s) + `requestAnimationFrame`, kein Framework-Overhead |
+| **⚡ Performance** | Fixer Tick (10/s) + `requestAnimationFrame` fürs Rendering, kein Framework-Overhead |
 
 ### Generatoren
 
@@ -105,6 +107,7 @@ Vollmodular nach **OOP-Prinzipien**. Keine Gott-Klasse, lose Kopplung via EventB
 Idle-Hacker-Tycoon/
 ├── index.html              # App-Shell, Tabs, Hack-Button
 ├── manifest.json           # PWA Manifest (installierbar)
+├── sw.js                   # Service Worker: Network-First + Offline-Fallback
 ├── version.json            # Remote-Version für Update-Check
 ├── css/
 │   └── style.css           # Mobile-First, CSS-Variablen, 560px Layout
@@ -114,8 +117,8 @@ Idle-Hacker-Tycoon/
     ├── config/
     │   └── GameConfig.js   # ← Einzige Stelle für Balancing
     ├── core/
-    │   ├── Game.js         # Facade: orchestriert Systeme, Loop, Save
-    │   ├── GameLoop.js     # fixer Tick + rAF
+    │   ├── Game.js         # Facade: orchestriert Systeme, Loop, Save, Offline-Catch-Up
+    │   ├── GameLoop.js     # fixer Tick via setInterval (läuft minimiert weiter) + rAF-Rendering
     │   ├── EventBus.js     # Pub/Sub
     │   ├── SaveManager.js  # localStorage Wrapper
     │   └── UpdateManager.js# version.json Check, Update-Popup, Hard-Reload
@@ -165,9 +168,18 @@ Installierte Apps (Standalone) prüfen beim Start (+2s) und bei Rückkehr in den
 
 1. **Neue Version gefunden** → Bestätigungsdialog mit *Aktualisieren* / *Später*
 2. **Später** → Popup schließt, gilt nur für die **aktuelle Session** — beim nächsten App-Start wird erneut gefragt
-3. **Aktualisieren** → Cache leeren, Service-Worker-Update anstoßen, Hard-Reload mit Cache-Bust
+3. **Aktualisieren** → Caches + alten Service Worker entfernen, Hard-Reload mit Cache-Bust
+4. **Schleifenschutz** → Liefert der Server (CDN/HTTP-Cache) die neue Version noch nicht, wird max. 5 min lang nicht erneut gefragt
 
-> Release-Prozess: `version.json` bumpen und deployen ist genug — installierte Clients melden sich selbst.
+> Release-Prozess: `version.json` bumpen und deployen ist genug — installierte Clients melden sich selbst. Der Service Worker holt Assets grundsätzlich **network-first**, Updates sind also sofort sichtbar.
+
+---
+
+## 🌙 Offline & Hintergrund
+
+- **Minimiert/im Hintergrund:** Der Logik-Tick läuft über `setInterval` weiter (rAF würde pausiert). Wird das Tab vom Browser komplett eingefroren (z. B. Mobile), rechnet `Game` beim Rückkehren die suspendierte Zeit als Catch-Up-Ertrag nach (>10s, gedeckelt auf 12h) und speichert sofort.
+- **App geschlossen:** Beim nächsten Start wird die Zeit seit dem letzten Auto-Save (`savedAt`) nachvergütet — mit *Willkommen-zurück*-Modal inkl. Offline-Dauer und erhaltenen Bits.
+- **Kein Netz:** Der Service Worker liefert die zuletzt geladenen Ressourcen aus dem Cache — das Spiel bleibt spielbar.
 
 ---
 
@@ -195,6 +207,7 @@ Die installierte App läuft ohne Browser-UI, blockiert Text-Manipulation und pr�
 - [x] **v0.1** — Core Loop, 5 Generatoren, 5 Upgrades, Save/Offline
 - [x] **v0.2** — PWA (installierbar, Icons), Standalone-Schutz
 - [x] **v0.3** — Prestige (Root-Zugriff), Auto-Update-Check mit Popup
+- [x] **v0.3.2** — Hintergrund-Betrieb, Offline-Catch-Up mit Modal, Service Worker + Update-Fix
 - [ ] **v0.4** — Hack-Minigame (Timing/Pattern)
 - [ ] **v0.5** — Achievements & Daily Rewards
 - [ ] **v0.6** — Sound/Musik + Themes (Light/Dark/Hacker-Green)
