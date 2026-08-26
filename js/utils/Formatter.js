@@ -14,7 +14,8 @@ export class Formatter {
         for (const [threshold, suffix] of units) {
             if (n >= threshold) {
                 const v = n / threshold;
-                return (v >= 100 ? Math.floor(v) : v >= 10 ? v.toFixed(1) : v.toFixed(2)).replace(/\.0+$/, '').replace(/\.$/, '') + suffix;
+                const str = v >= 100 ? String(Math.floor(v)) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
+                return str.replace(/\.0+$/, '').replace(/\.$/, '') + suffix;
             }
         }
         return Math.floor(n).toString();

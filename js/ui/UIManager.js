@@ -131,20 +131,73 @@ export class UIManager {
 
     renderGenerators() {
         const states = this.game.automation.getAllStates();
-        this.els.generatorsList.innerHTML = states.map(s => `
+        const totalPerSec = this.game.automation.getTotalPerSec();
+        const totalOwned = states.reduce((a, s) => a + s.owned, 0);
+        const bits = this.game.economy.bits;
+
+        // --- Overview Header ---
+        const kpiTotal = Formatter.formatBits(totalPerSec);
+        const kpiNodes = totalOwned;
+        const nextAffordable = states.find(s => !s.canAfford);
+        const nextHint = nextAffordable ? `${nextAffordable.def.name} in ${Formatter.formatBits(Math.max(0, nextAffordable.cost - bits))} Bits` : 'Alle Server verfügbar';
+
+        const rackHtml = states.map(s => {
+            const active = s.owned > 0;
+            return `<div class="rack-unit ${active ? 'active' : 'inactive'}">
+                <div class="led"></div>
+                <span class="rack-label">${s.def.name.split(' ')[0]}</span>
+                <span class="rack-count">x${s.owned}</span>
+            </div>`;
+        }).join('');
+
+        const terminalLine = totalOwned === 0
+            ? 'Bereit für ersten Exploit... Tippe HACK um Bits zu sammeln.'
+            : totalPerSec === 0
+                ? 'Initialisiere Knoten...'
+                : `Mining ${Formatter.formatPerSec(totalPerSec)} Bits/sec · ${totalOwned} Knoten online · Uptime ${Formatter.formatTime(this.game.playtimeSec)}`;
+
+        // --- Generator Items ---
+        const itemsHtml = states.map((s, idx) => {
+            const share = totalPerSec > 0 ? (s.perSec / totalPerSec) * 100 : 0;
+            const tierLabel = `T${idx + 1}`;
+            const roi = s.def.basePerSec > 0 ? (s.cost / (s.def.basePerSec * (this.game.automation.genMultipliers.get(s.def.id) || 1) * this.game.automation.globalMultiplier)) : 0;
+            const roiText = s.owned === 0 && s.def.basePerSec > 0 ? ` · Amortisation ~${Math.ceil(roi)}s` : '';
+            return `
             <div class="item ${s.canAfford ? 'can-afford' : ''}" data-id="${s.def.id}">
                 <div class="item-icon">${s.def.icon}</div>
                 <div class="item-info">
-                    <div class="item-name">${s.def.name}</div>
+                    <div class="item-name">${s.def.name}<span class="item-tier">${tierLabel}</span></div>
                     <div class="item-desc">${s.def.description}</div>
-                    <div class="item-meta">${Formatter.formatPerSec(s.def.basePerSec)} /sec each · ${Formatter.formatBits(s.perSec)} total</div>
+                    <div class="item-meta">${Formatter.formatPerSec(s.def.basePerSec)} Bits/sec pro Einheit${roiText}</div>
+                    <div class="item-footer"><span class="share">${share.toFixed(1)}% Output</span> · ${Formatter.formatBits(s.perSec)} /sec total</div>
+                    <div class="item-progress" title="Anteil am Gesamt-Output"><div class="item-progress-fill" style="width:${share.toFixed(1)}%"></div></div>
                 </div>
                 <div class="item-owned">x${s.owned}</div>
                 <button class="btn-buy" data-buy="${s.def.id}" ${s.canAfford ? '' : 'disabled'}>
                     ${Formatter.formatBits(s.cost)} Bits
                 </button>
+            </div>`;
+        }).join('');
+
+        const emptyHint = totalOwned === 0 ? `<div class="server-empty">🛰️ <strong>Dein Netzwerk ist offline.</strong><br>Starte mit <strong>Script Kiddie</strong> (15 Bits) — der erste Knoten öffnet den Idle-Ertrag.</div>` : '';
+
+        this.els.generatorsList.innerHTML = `
+            <div class="server-overview">
+                <div class="server-overview-head">
+                    <div class="server-overview-title"><span class="dot"></span> Hacker-Netzwerk</div>
+                    <span class="server-overview-sub">${totalOwned === 0 ? 'OFFLINE' : 'ONLINE · ' + kpiNodes + ' Knoten'}</span>
+                </div>
+                <div class="server-kpi-grid">
+                    <div class="server-kpi"><span>Knoten</span><strong>${kpiNodes}</strong></div>
+                    <div class="server-kpi"><span>Leistung</span><strong>${kpiTotal} <small>/sec</small></strong></div>
+                    <div class="server-kpi"><span>Nächstes Ziel</span><strong style="font-size:0.72rem">${nextHint}</strong></div>
+                </div>
+                <div class="server-rack">${rackHtml}</div>
+                <div class="server-terminal">${terminalLine}</div>
             </div>
-        `).join('');
+            ${emptyHint}
+            ${itemsHtml}
+        `;
 
         for (const btn of this.els.generatorsList.querySelectorAll('[data-buy]')) {
             btn.addEventListener('click', () => {
