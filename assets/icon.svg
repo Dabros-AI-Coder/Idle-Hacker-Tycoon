@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="Idle Hacker Tycoon Icon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#131a2e"/>
+      <stop offset="55%" stop-color="#0f1a2e"/>
+      <stop offset="100%" stop-color="#0a1e2a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00ff88" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#00ff88" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="neon" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0" stdDeviation="18" flood-color="#00ff88" flood-opacity="0.7"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="36" flood-color="#00ff88" flood-opacity="0.35"/>
+    </filter>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#00ff88" stroke-opacity="0.07" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <!-- Rounded background -->
+  <rect x="0" y="0" width="1024" height="1024" rx="224" fill="#0a0e1a"/>
+  <rect x="2" y="2" width="1020" height="1020" rx="222" fill="url(#bg)" stroke="#1e2a4a" stroke-width="4"/>
+  <rect x="2" y="2" width="1020" height="1020" rx="222" fill="url(#grid)" opacity="0.9"/>
+  <circle cx="512" cy="512" r="300" fill="url(#glow)"/>
+
+  <!-- Window top bar -->
+  <g opacity="0.95">
+    <rect x="160" y="130" width="704" height="56" rx="14" fill="#0a0e1a" stroke="#1e2a4a" stroke-width="3"/>
+    <circle cx="196" cy="158" r="10" fill="#ff5f56"/>
+    <circle cx="224" cy="158" r="10" fill="#ffbd2e"/>
+    <circle cx="252" cy="158" r="10" fill="#27c93f"/>
+    <text x="512" y="166" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700" letter-spacing="8" fill="#94a3b8">IDLE HACKER</text>
+  </g>
+
+  <!-- Central neon ring -->
+  <circle cx="512" cy="540" r="222" fill="none" stroke="#00ff88" stroke-width="10" opacity="0.95" filter="url(#neon)"/>
+  <circle cx="512" cy="540" r="208" fill="#0a0e1a" stroke="#1e2a4a" stroke-width="3"/>
+
+  <!-- Inner highlight -->
+  <ellipse cx="430" cy="470" rx="90" ry="55" fill="white" opacity="0.06"/>
+
+  <!-- Hacker code symbol </> -->
+  <text x="512" y="585" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="210" font-weight="800" fill="#00ff88" letter-spacing="-8" filter="url(#neon)">&lt;/&gt;</text>
+
+  <!-- Terminal cursor block -->
+  <rect x="620" y="605" width="36" height="18" rx="3" fill="#00ff88" opacity="0.95" filter="url(#neon)"/>
+
+  <!-- Binary rain subtle -->
+  <g font-family="ui-monospace, monospace" font-size="16" fill="#00ff88" opacity="0.18">
+    <text x="200" y="360">01</text><text x="780" y="380">10</text>
+    <text x="210" y="760">10</text><text x="770" y="750">01</text>
+    <text x="300" y="840">0101</text><text x="650" y="300">1010</text>
+  </g>
+
+  <!-- Corner brackets -->
+  <g stroke="#00ff88" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.9">
+    <path d="M 88 240 L 88 88 L 240 88"/>
+    <path d="M 784 88 L 936 88 L 936 240"/>
+    <path d="M 936 784 L 936 936 L 784 936"/>
+    <path d="M 240 936 L 88 936 L 88 784"/>
+  </g>
+</svg>
