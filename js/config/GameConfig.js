@@ -7,6 +7,8 @@ export const GameConfig = Object.freeze({
     saveKey: 'idle_hacker_tycoon_v02',
     saveIntervalMs: 5000,
     offlineCapHours: 12,
+    // Ab wie vielen Sekunden Tab-Abwesenheit Catch-Up-Ertrag gewährt wird
+    offlineCatchUpMinSec: 10,
     tickRate: 10, // Ticks pro Sekunde für passive Income
 
     startingBits: 0,

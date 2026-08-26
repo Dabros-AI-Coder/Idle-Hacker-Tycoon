@@ -91,10 +91,13 @@ export class UIManager {
         });
         this.bus.on('game:prestige', () => this.renderAll());
         this.bus.on('game:tick', () => this.renderTick());
-        this.bus.on('game:initialized', ({ offlineEarning }) => {
-            this.renderAll();
-            if (offlineEarning > 0) {
-                this.toast(`Offline: +${Formatter.formatBits(offlineEarning)} Bits`);
+        this.bus.on('game:initialized', () => this.renderAll());
+        this.bus.on('game:offline', ({ amount, seconds, capped, isInit }) => {
+            if (amount <= 0) return;
+            if (isInit) {
+                this._showOfflineModal(amount, seconds, capped);
+            } else {
+                this.toast(`Willkommen zurück! +${Formatter.formatBits(amount)} Bits`);
             }
         });
         this.bus.on('game:reset', () => this.renderAll());
@@ -219,6 +222,34 @@ export class UIManager {
             close();
             if (ok && navigator.vibrate) navigator.vibrate([20, 30, 20]);
         });
+    }
+
+    _showOfflineModal(amount, seconds, capped) {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        const capNote = capped
+            ? `<br><span style="color:var(--text-dim)">Ertrag auf ${GameConfig.offlineCapHours}h Offline-Limit gedeckelt.</span>`
+            : '';
+        overlay.innerHTML = `
+            <div class="modal offline-modal">
+                <h3><span class="update-icon">💤</span> Willkommen zurück!</h3>
+                <p>Dein Netzwerk hat weitergemined, während du weg warst:</p>
+                <div class="offline-summary">
+                    <div class="server-kpi"><span>Offline-Zeit</span><strong>${Formatter.formatTime(seconds)}</strong></div>
+                    <div class="server-kpi"><span>Erhaltene Bits</span><strong class="accent">+${Formatter.formatBits(amount)}</strong></div>
+                </div>${capNote}
+                <div class="modal-actions">
+                    <button class="btn-modal primary" data-action="collect">Einsammeln</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        const close = () => {
+            overlay.remove();
+            if (navigator.vibrate) navigator.vibrate(20);
+        };
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+        overlay.querySelector('[data-action="collect"]').addEventListener('click', close);
     }
 
     _showUpdateModal(remote, current) {

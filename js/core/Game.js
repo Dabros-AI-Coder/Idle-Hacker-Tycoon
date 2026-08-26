@@ -26,13 +26,21 @@ export class Game {
         this.startTime = performance.now();
         this._saveTimer = 0;
         this._offlineEarning = 0;
+        this._hiddenAt = null;
 
         this.loop = new GameLoop(GameConfig.tickRate, (dt) => this.tick(dt));
 
-        // Auto-save on visibility hide
+        // Auto-save on hide, Catch-Up on return — Spiel läuft im Hintergrund
+        // weiter (setInterval), hier werden nur suspendierte Zeiträume gutgeschrieben.
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') this.persist();
+            if (document.visibilityState === 'hidden') {
+                this._hiddenAt = Date.now();
+                this.persist();
+            } else {
+                this._handleReturn();
+            }
         });
+        window.addEventListener('focus', () => this._handleReturn());
         window.addEventListener('beforeunload', () => this.persist());
     }
 
@@ -54,22 +62,53 @@ export class Game {
             this.upgrades.load(data.upgrades);
             this.prestige.load(data.prestige);
             this.playtimeSec = data.playtimeSec || 0;
-            // Offline progress
+            // Offline progress (zuletzt gespeicherter Zeitpunkt)
             if (data.savedAt) {
                 const elapsedSec = (Date.now() - data.savedAt) / 1000;
-                const capped = Math.min(elapsedSec, GameConfig.offlineCapHours * 3600);
-                if (capped > 2) {
-                    const perSec = this.automation.getTotalPerSec();
-                    this._offlineEarning = perSec * capped;
-                    if (this._offlineEarning > 0) {
-                        this.economy.addBits(this._offlineEarning);
-                    }
-                }
+                this._grantOffline(elapsedSec, true);
             }
         }
         this.loop.start();
         this.bus.emit('game:initialized', { offlineEarning: this._offlineEarning });
         this.bus.emit('economy:changed', this.economy.snapshot());
+    }
+
+    /**
+     * Rückkehr in den Tab: Loop-Zeit resynchronisieren und suspendierte
+     * Zeit als Offline-Ertrag gutschreiben.
+     */
+    _handleReturn() {
+        if (!this.loop.running) return;
+        this.loop.syncTime();
+        if (!this._hiddenAt) return;
+        const gapSec = (Date.now() - this._hiddenAt) / 1000;
+        this._hiddenAt = null;
+        if (gapSec > GameConfig.offlineCatchUpMinSec) {
+            this._grantOffline(gapSec, false);
+            this.persist();
+        }
+    }
+
+    /**
+     * Offline-/Catch-Up-Ertrag gutschreiben (auf offlineCapHours gedeckelt).
+     * @param {number} elapsedSec
+     * @param {boolean} isInit - true beim Spielstart, false bei Tab-Rückkehr
+     */
+    _grantOffline(elapsedSec, isInit) {
+        const capped = Math.min(elapsedSec, GameConfig.offlineCapHours * 3600);
+        if (capped < GameConfig.offlineCatchUpMinSec) return;
+        const perSec = this.automation.getTotalPerSec();
+        if (perSec <= 0) return;
+        const amount = perSec * capped;
+        this.economy.addBits(amount);
+        this._offlineEarning += amount;
+        this.bus.emit('game:offline', {
+            amount,
+            seconds: capped,
+            capped: elapsedSec > capped,
+            isInit,
+            total: this._offlineEarning,
+        });
     }
 
     tick(dt) {
@@ -128,6 +167,7 @@ export class Game {
         this.prestige.resetHard();
         this.playtimeSec = 0;
         this._offlineEarning = 0;
+        this._hiddenAt = null;
         this.bus.emit('game:reset', null);
         this.bus.emit('economy:changed', this.economy.snapshot());
     }
