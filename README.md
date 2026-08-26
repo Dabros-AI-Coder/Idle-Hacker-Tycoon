@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Playable-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.3.2-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-0.3.3-00ff88?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
   <img src="https://img.shields.io/badge/Vanilla_JS-ES_Modules-ffcc00?style=for-the-badge" alt="Vanilla JS" />
 </p>
@@ -42,6 +42,8 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | **📱 PWA** | Installierbar (`manifest.json`, Icons), Standalone-Erkennung, Browser-Schutz (kein Rechtsklick/Markieren/Kopieren in der App) |
 | **🔄 Auto-Update-Check** | Installierte App prüft `version.json` (Cache-Bypass) → Bestätigungsdialog bei neuer Version; „Später" gilt nur pro Session; Schleifenschutz falls das CDN die neue Version noch nicht ausliefert |
 | **💾 Persistenz** | Auto-Save alle 5s + `visibilitychange` + `beforeunload`, `localStorage` |
+| **🛡️ Save-Schema** | Versioniertes Save-Format (`schemaVersion`) mit Migrations-Kette — alte Spielstände bleiben kompatibel; Saves von neueren Versionen werden abgelehnt statt zu crashen |
+| **💾 Export/Import** | Spielstand als JSON-Code kopieren & wieder einfügen (Backup/Gerätewechsel) im Stats-Tab |
 | **🌙 Offline-Progress** | Bis zu 12h passives Einkommen nachrechnen — beim Spielstart mit *Willkommen-zurück*-Modal, bei Tab-Rückkehr als Catch-Up (>10s Abwesenheit) |
 | **⏯️ Hintergrund-Betrieb** | Logik-Tick läuft via `setInterval` weiter, auch wenn das Tab minimiert ist; suspendierte Zeit wird beim Rückkehren gutgeschrieben |
 | **📴 Offline-fähig** | Service Worker (Network-First) — Updates kommen sofort an, offline dient der letzte Stand |
@@ -208,6 +210,7 @@ Die installierte App läuft ohne Browser-UI, blockiert Text-Manipulation und pr�
 - [x] **v0.2** — PWA (installierbar, Icons), Standalone-Schutz
 - [x] **v0.3** — Prestige (Root-Zugriff), Auto-Update-Check mit Popup
 - [x] **v0.3.2** — Hintergrund-Betrieb, Offline-Catch-Up mit Modal, Service Worker + Update-Fix
+- [x] **v0.3.3** — Save-Schema-Versionierung (Migration) + Export/Import
 - [ ] **v0.4** — Hack-Minigame (Timing/Pattern)
 - [ ] **v0.5** — Achievements & Daily Rewards
 - [ ] **v0.6** — Sound/Musik + Themes (Light/Dark/Hacker-Green)

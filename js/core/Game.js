@@ -13,9 +13,17 @@ import { UpgradeSystem } from '../systems/UpgradeSystem.js';
 import { PrestigeSystem } from '../systems/PrestigeSystem.js';
 
 export class Game {
+    /**
+     * Schema-Migrationen: key = Ziel-Version, value = (data) => data.
+     * Bei schemaVersion-Erhöhung in GameConfig hier die Funktion ergänzen.
+     */
+    static MIGRATIONS = {
+        // 1: (data) => { ...; return data; }, // Beispiel: 0 -> 1
+    };
+
     constructor() {
         this.bus = new EventBus();
-        this.save = new SaveManager(GameConfig.saveKey);
+        this.save = new SaveManager(GameConfig.saveKey, GameConfig.schemaVersion);
         this.economy = new EconomySystem(this.bus);
         this.click = new ClickSystem(this.bus, this.economy);
         this.automation = new AutomationSystem(this.bus, this.economy);
@@ -57,20 +65,42 @@ export class Game {
             } catch {}
         }
         if (data) {
-            this.economy.load(data.economy);
-            this.automation.load(data.automation);
-            this.upgrades.load(data.upgrades);
-            this.prestige.load(data.prestige);
-            this.playtimeSec = data.playtimeSec || 0;
-            // Offline progress (zuletzt gespeicherter Zeitpunkt)
-            if (data.savedAt) {
-                const elapsedSec = (Date.now() - data.savedAt) / 1000;
-                this._grantOffline(elapsedSec, true);
-            }
+            data = this._migrate(data);
+            if (data) this._applyLoadedData(data);
         }
         this.loop.start();
         this.bus.emit('game:initialized', { offlineEarning: this._offlineEarning });
         this.bus.emit('economy:changed', this.economy.snapshot());
+    }
+
+    /**
+     * Schema-Migration: fehlende schemaVersion gilt als 0, Save von einer
+     * neueren Version wird abgelehnt (null).
+     * @returns {object|null} migrierte Daten oder null bei Ablehnung
+     */
+    _migrate(data) {
+        let v = Number.isInteger(data.schemaVersion) ? data.schemaVersion : 0;
+        if (v > GameConfig.schemaVersion) return null; // zu neu — nicht ladbar
+        while (v < GameConfig.schemaVersion) {
+            v += 1;
+            const migrate = Game.MIGRATIONS[v];
+            if (migrate) data = migrate(data);
+        }
+        data.schemaVersion = GameConfig.schemaVersion;
+        return data;
+    }
+
+    /** Geladene Daten auf die Systeme anwenden (+ Offline-Ertrag). */
+    _applyLoadedData(data) {
+        this.economy.load(data.economy);
+        this.automation.load(data.automation);
+        this.upgrades.load(data.upgrades);
+        this.prestige.load(data.prestige);
+        this.playtimeSec = data.playtimeSec || 0;
+        if (data.savedAt) {
+            const elapsedSec = (Date.now() - data.savedAt) / 1000;
+            this._grantOffline(elapsedSec, true);
+        }
     }
 
     /**
@@ -137,6 +167,54 @@ export class Game {
             prestige: this.prestige.serialize(),
             playtimeSec: this.playtimeSec,
         });
+    }
+
+    /**
+     * Spielstand als JSON-String exportieren (frisch persistiert).
+     * @returns {string}
+     */
+    exportSave() {
+        this.persist();
+        const data = this.save.load();
+        return data ? JSON.stringify(data) : '{}';
+    }
+
+    /**
+     * Spielstand aus JSON-String importieren (überschreibt aktuellen Fortschritt).
+     * @param {string} jsonString
+     * @returns {{ok: boolean, reason?: 'parse'|'invalid'|'newer'}}
+     */
+    importSave(jsonString) {
+        let data;
+        try {
+            data = JSON.parse(jsonString);
+        } catch {
+            return { ok: false, reason: 'parse' };
+        }
+        if (!data || typeof data !== 'object' || !data.economy || !data.automation) {
+            return { ok: false, reason: 'invalid' };
+        }
+        if (Number.isInteger(data.schemaVersion) && data.schemaVersion > GameConfig.schemaVersion) {
+            return { ok: false, reason: 'newer' };
+        }
+        data = this._migrate(data);
+        if (!data) return { ok: false, reason: 'newer' };
+
+        // Systeme zurücksetzen damit keine Altlasten vom aktuellen Stand übrig bleiben
+        this.economy.reset();
+        this.automation.reset();
+        this.upgrades.reset();
+        this.prestige.resetHard();
+        this._offlineEarning = 0;
+
+        // Offline-Ertrag des Imports NICHT gutschreiben (sonst export->import farming)
+        const savedAt = data.savedAt;
+        data.savedAt = null;
+        this._applyLoadedData(data);
+        data.savedAt = savedAt;
+
+        this.persist();
+        return { ok: true };
     }
 
     /**

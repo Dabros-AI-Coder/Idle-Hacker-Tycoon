@@ -3,8 +3,11 @@
  * Modular: jede Balance-Änderung nur hier.
  */
 export const GameConfig = Object.freeze({
-    version: '0.3.2',
+    version: '0.3.3',
     saveKey: 'idle_hacker_tycoon_v02',
+    // Version des Save-Schemas (unabhängig vom localStorage-Key).
+    // Bei Schema-Änderungen: hier erhöhen + Migration in Game.MIGRATIONS ergänzen.
+    schemaVersion: 1,
     saveIntervalMs: 5000,
     offlineCapHours: 12,
     // Ab wie vielen Sekunden Tab-Abwesenheit Catch-Up-Ertrag gewährt wird

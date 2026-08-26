@@ -1,5 +1,5 @@
 {
-  "version": "0.3.2",
+  "version": "0.3.3",
   "build": 20260826,
-  "notes": "Update-Fix: Service Worker (Network-First) + Offline-Modus + Hintergrund-Ertrag"
+  "notes": "Save-Robustheit: Schema-Versionierung mit Migration + Export/Import"
 }

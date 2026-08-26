@@ -36,6 +36,8 @@ export class UIManager {
             statPrestigePoints: $('stat-prestige-points'),
             statPrestigeCount: $('stat-prestige-count'),
             btnReset: $('btn-reset'),
+            btnExport: $('btn-export'),
+            btnImport: $('btn-import'),
             toastContainer: $('toast-container'),
             tabs: [...document.querySelectorAll('.tab-btn')],
             tabContents: [...document.querySelectorAll('.tab-content')],
@@ -66,6 +68,10 @@ export class UIManager {
                 this.renderAll();
             }
         });
+
+        // Spielstand Export / Import
+        this.els.btnExport.addEventListener('click', () => this._showSaveModal('export'));
+        this.els.btnImport.addEventListener('click', () => this._showSaveModal('import'));
 
         // Verhindere Zoom bei Doppel-Tap auf iOS (zusätzlich zu viewport)
         document.addEventListener('touchstart', (e) => {
@@ -225,6 +231,68 @@ export class UIManager {
             close();
             if (ok && navigator.vibrate) navigator.vibrate([20, 30, 20]);
         });
+    }
+
+    /**
+     * Export/Import-Modal. Beim Export ist die Textarea mit dem Save-JSON
+     * gefüllt (Kopieren-Button), beim Import leer (Einfügen + Laden).
+     */
+    _showSaveModal(mode) {
+        const isExport = mode === 'export';
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `
+            <div class="modal save-modal">
+                <h3>${isExport ? '💾 Spielstand exportieren' : '📥 Spielstand importieren'}</h3>
+                <p>${isExport
+                    ? 'Kopiere dir diesen Code und bewahre ihn sicher auf.'
+                    : 'Füge hier deinen Spielstand-Code ein.<br><strong>Achtung:</strong> Überschreibt den aktuellen Fortschritt.'}</p>
+                <textarea class="save-textarea" spellcheck="false" placeholder="${isExport ? '' : '{ ... }'}"></textarea>
+                <div class="modal-actions">
+                    <button class="btn-modal secondary" data-action="cancel">Schließen</button>
+                    ${isExport
+                        ? '<button class="btn-modal primary" data-action="copy">Kopieren</button>'
+                        : '<button class="btn-modal primary" data-action="load">Laden</button>'}
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        const textarea = overlay.querySelector('.save-textarea');
+        const close = () => overlay.remove();
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+        overlay.querySelector('[data-action="cancel"]').addEventListener('click', close);
+
+        if (isExport) {
+            textarea.value = this.game.exportSave();
+            overlay.querySelector('[data-action="copy"]').addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText(textarea.value);
+                } catch {
+                    textarea.select();
+                    document.execCommand('copy'); // Fallback (Standalone/HTTP)
+                }
+                this.toast('Spielstand kopiert!');
+                if (navigator.vibrate) navigator.vibrate(15);
+            });
+        } else {
+            overlay.querySelector('[data-action="load"]').addEventListener('click', () => {
+                const text = textarea.value.trim();
+                if (!text) return;
+                if (!confirm('Aktuellen Fortschritt mit dem eingefügten Spielstand überschreiben?')) return;
+                const result = this.game.importSave(text);
+                if (result.ok) {
+                    close();
+                    this.renderAll();
+                    this.toast('Spielstand geladen!');
+                    if (navigator.vibrate) navigator.vibrate([15, 30, 15]);
+                } else {
+                    const msg = result.reason === 'parse' ? 'Ungültiges JSON.'
+                        : result.reason === 'newer' ? 'Spielstand stammt von einer neueren Version.'
+                        : 'Kein gültiger Spielstand.';
+                    this.toast(`Import fehlgeschlagen: ${msg}`);
+                }
+            });
+        }
     }
 
     _showOfflineModal(amount, seconds, capped) {
