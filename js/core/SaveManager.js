@@ -41,8 +41,4 @@ export class SaveManager {
     clear() {
         try { localStorage.removeItem(this.key); } catch { /* ignore */ }
     }
-
-    hasSave() {
-        return localStorage.getItem(this.key) !== null;
-    }
 }

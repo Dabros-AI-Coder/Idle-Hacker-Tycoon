@@ -136,7 +136,6 @@ export class UIManager {
         this.bus.on('update:pending', () => {
             this.toast('Update bereits angestoßen — neue Version noch nicht am Server. Später erneut prüfen.');
         });
-        this.bus.on('update:uptodate', () => { /* silent */ });
     }
 
     _switchTab(name) {

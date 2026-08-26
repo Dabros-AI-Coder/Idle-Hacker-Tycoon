@@ -78,9 +78,8 @@ document.addEventListener('contextmenu', blockIfStandalone);
 // Text markieren / ziehen
 document.addEventListener('selectstart', blockIfStandalone);
 document.addEventListener('dragstart', blockIfStandalone);
-// Kopieren / Ausschneiden (verhindert Markierungs-Menu)
-document.addEventListener('copy', blockIfStandalone);
-document.addEventListener('cut', blockIfStandalone);
-// Langdruck-Menu auf iOS wird via CSS -webkit-touch-callout unterdrückt,
-// zusätzlich Touch-Callout als Double-Safety
-document.addEventListener('touchcallout', blockIfStandalone);
+    // Kopieren / Ausschneiden (verhindert Markierungs-Menu)
+    document.addEventListener('copy', blockIfStandalone);
+    document.addEventListener('cut', blockIfStandalone);
+    // Langdruck-Menu auf iOS wird via CSS -webkit-touch-callout unterdrückt
+}

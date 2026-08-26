@@ -19,7 +19,6 @@ export class Game {
      * Bei schemaVersion-Erhöhung in GameConfig hier die Funktion ergänzen.
      */
     static MIGRATIONS = {
-        // 1: (data) => { ...; return data; }, // Beispiel: 0 -> 1
     };
 
     constructor() {
@@ -32,7 +31,6 @@ export class Game {
         this.prestige = new PrestigeSystem(this.bus, this.economy);
 
         this.playtimeSec = 0;
-        this.startTime = performance.now();
         this._saveTimer = 0;
         this._offlineEarning = 0;
         this._hiddenAt = null;

@@ -14,11 +14,8 @@ export class UpdateManager {
         this.bus = bus;
         this.currentVersion = currentVersion;
         this.versionUrl = versionUrl;
-        this.lastCheckAt = 0;
-        this.cooldownMs = 5 * 60 * 1000; // 5min Cooldown
         this.storageKey = 'idle_hacker_update_dismissed';
         this.appliedKey = 'idle_hacker_update_applied';
-        this.pendingWindowMs = 5 * 60 * 1000; // Schleifenschutz-Fenster
     }
 
     isStandalone() {

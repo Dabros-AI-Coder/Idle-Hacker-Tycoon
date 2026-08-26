@@ -12,7 +12,6 @@ export class ClickSystem {
         this.bus = bus;
         this.economy = economy;
         this.clickMultiplier = 1;
-        this.flatBonus = 0;
         this.prestigeMultiplier = 1;
 
         bus.on('upgrade:applied', ({ effect }) => {
@@ -31,7 +30,7 @@ export class ClickSystem {
     }
 
     getClickValue() {
-        return (GameConfig.baseClickValue + this.flatBonus) * this.clickMultiplier * this.prestigeMultiplier;
+        return GameConfig.baseClickValue * this.clickMultiplier * this.prestigeMultiplier;
     }
 
     hack() {

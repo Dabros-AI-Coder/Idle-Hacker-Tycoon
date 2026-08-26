@@ -37,10 +37,6 @@ class _Options {
         this._cache = data;
         try { localStorage.setItem(KEY, JSON.stringify(data)); } catch {}
     }
-
-    all() {
-        return { ...this._load() };
-    }
 }
 
 export const Options = new _Options();
