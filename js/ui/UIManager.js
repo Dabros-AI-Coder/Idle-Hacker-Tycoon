@@ -103,6 +103,9 @@ export class UIManager {
         this.bus.on('game:reset', () => this.renderAll());
         // Update verfügbar (nur als installierte App via UpdateManager onlyStandalone)
         this.bus.on('update:available', ({ remote, current }) => this._showUpdateModal(remote, current));
+        this.bus.on('update:pending', () => {
+            this.toast('Update bereits angestoßen — neue Version noch nicht am Server. Später erneut prüfen.');
+        });
         this.bus.on('update:uptodate', () => { /* silent */ });
     }
 
@@ -279,7 +282,7 @@ export class UIManager {
         overlay.addEventListener('click', (e) => { if (e.target === overlay) close(remote); });
         overlay.querySelector('[data-action="later"]').addEventListener('click', () => close(remote));
         overlay.querySelector('[data-action="update"]').addEventListener('click', () => {
-            if (this.game.updateManager) this.game.updateManager.applyUpdate();
+            if (this.game.updateManager) this.game.updateManager.applyUpdate(remote);
             else window.location.reload();
             if (navigator.vibrate) navigator.vibrate(20);
         });

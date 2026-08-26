@@ -16,6 +16,13 @@ game.init();
 // Expose für Debugging (nur dev)
 window.__IDLE_HACKER__ = { game, ui, updateManager };
 
+// === Service Worker (PWA: Offline-Fähigkeit + sofortige Updates) ===
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => { /* offline-PWA nicht kritisch */ });
+    });
+}
+
 // Dynamische Viewport-Höhe fix für mobile Browser (100dvh Fallback)
 function setVh() {
     const vh = window.innerHeight * 0.01;

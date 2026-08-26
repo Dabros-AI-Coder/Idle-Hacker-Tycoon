@@ -1,5 +1,5 @@
 {
-  "version": "0.3.1",
+  "version": "0.3.2",
   "build": 20260826,
-  "notes": "Update-Check: Später gilt nur pro Session"
+  "notes": "Update-Fix: Service Worker (Network-First) + Offline-Modus + Hintergrund-Ertrag"
 }

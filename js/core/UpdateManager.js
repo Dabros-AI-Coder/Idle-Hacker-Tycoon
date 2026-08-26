@@ -17,6 +17,8 @@ export class UpdateManager {
         this.lastCheckAt = 0;
         this.cooldownMs = 5 * 60 * 1000; // 5min Cooldown
         this.storageKey = 'idle_hacker_update_dismissed';
+        this.appliedKey = 'idle_hacker_update_applied';
+        this.pendingWindowMs = 5 * 60 * 1000; // Schleifenschutz-Fenster
     }
 
     isStandalone() {
@@ -76,6 +78,13 @@ export class UpdateManager {
                     this.bus.emit('update:dismissed_cached', { remote, current: this.currentVersion });
                     return { status: 'dismissed', remote };
                 }
+                // Schleifenschutz: Update wurde kürzlich angestoßen, aber der Server
+                // liefert die neue Version noch nicht (CDN/HTTP-Cache) — nicht endlos neu fragen.
+                const applied = this._getApplied();
+                if (!force && applied && applied.version === remote && now - applied.at < this.pendingWindowMs) {
+                    this.bus.emit('update:pending', { remote, current: this.currentVersion });
+                    return { status: 'pending', remote };
+                }
                 this.bus.emit('update:available', { remote, current: this.currentVersion, notes: null });
                 return { status: 'available', remote, current: this.currentVersion };
             } else {
@@ -99,22 +108,40 @@ export class UpdateManager {
         try { localStorage.removeItem(this.storageKey); } catch {} // Altlasten aufräumen
     }
 
-    async applyUpdate() {
+    _getApplied() {
+        try {
+            const raw = localStorage.getItem(this.appliedKey);
+            if (!raw) return null;
+            const data = JSON.parse(raw);
+            return (data && data.version && data.at) ? data : null;
+        } catch { return null; }
+    }
+
+    /**
+     * Update anstoßen: Caches + Service Worker entfernen, dann Hard-Reload.
+     * @param {string} remoteVersion - Ziel-Version (für Schleifenschutz)
+     */
+    async applyUpdate(remoteVersion = '') {
         this.clearDismissed();
-        // Service Worker Cache leeren wenn vorhanden (PWA)
+        try { localStorage.setItem(this.appliedKey, JSON.stringify({ version: String(remoteVersion || this.currentVersion), at: Date.now() })); } catch {}
+
+        // Alle Caches leeren
         try {
             if ('caches' in window) {
                 const keys = await caches.keys();
                 await Promise.all(keys.map(k => caches.delete(k)));
             }
+        } catch {}
+
+        // Alten Service Worker abmelden — der nächste Load registriert
+        // die neue sw.js frisch und holt alles aus dem Netz.
+        try {
             if ('serviceWorker' in navigator) {
                 const regs = await navigator.serviceWorker.getRegistrations();
-                for (const r of regs) {
-                    // Nur update anstoßen, nicht sofort unregistrieren — Reload holt neue SW
-                    try { await r.update(); } catch {}
-                }
+                await Promise.all(regs.map(r => r.unregister()));
             }
         } catch {}
+
         // Hard-Reload mit Cache-Bust
         const url = new URL(window.location.href);
         url.searchParams.set('_update', Date.now());
