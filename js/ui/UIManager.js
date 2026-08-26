@@ -59,28 +59,34 @@ export class UIManager {
             // Haptik falls verfügbar
             haptic(20);
         };
-        this.els.btnHack.addEventListener('click', hack);
-        this.els.btnHack.addEventListener('touchend', hack, { passive: false });
-
-        // Tabs
-        for (const btn of this.els.tabs) {
-            btn.addEventListener('click', () => this._switchTab(btn.dataset.tab));
+        if (this.els.btnHack) {
+            this.els.btnHack.addEventListener('click', hack);
+            this.els.btnHack.addEventListener('touchend', hack, { passive: false });
         }
 
-        this.els.btnReset.addEventListener('click', () => {
-            if (confirm('Wirklich gesamten Fortschritt löschen?')) {
-                this.game.reset();
-                this.toast('Fortschritt gelöscht');
-                this.renderAll();
+        // Tabs
+        if (this.els.tabs) {
+            for (const btn of this.els.tabs) {
+                btn.addEventListener('click', () => this._switchTab(btn.dataset.tab));
             }
-        });
+        }
+
+        if (this.els.btnReset) {
+            this.els.btnReset.addEventListener('click', () => {
+                if (confirm('Wirklich gesamten Fortschritt löschen?')) {
+                    this.game.reset();
+                    this.toast('Fortschritt gelöscht');
+                    this.renderAll();
+                }
+            });
+        }
 
         // Spielstand Export / Import
-        this.els.btnExport.addEventListener('click', () => this._showSaveModal('export'));
-        this.els.btnImport.addEventListener('click', () => this._showSaveModal('import'));
+        if (this.els.btnExport) this.els.btnExport.addEventListener('click', () => this._showSaveModal('export'));
+        if (this.els.btnImport) this.els.btnImport.addEventListener('click', () => this._showSaveModal('import'));
 
         // Tutorial
-        this.els.btnTutorialSkip.addEventListener('click', () => this._finishTutorial(true));
+        if (this.els.btnTutorialSkip) this.els.btnTutorialSkip.addEventListener('click', () => this._finishTutorial(true));
 
         // Verhindere Zoom bei Doppel-Tap auf iOS (zusätzlich zu viewport)
         document.addEventListener('touchstart', (e) => {

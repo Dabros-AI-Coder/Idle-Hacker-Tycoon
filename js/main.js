@@ -14,13 +14,10 @@ const menu = new MainMenu(game);
 const updateManager = new UpdateManager(game.bus);
 game.updateManager = updateManager;
 
-// Expose für Debugging (nur dev)
-window.__IDLE_HACKER__ = { game, ui, menu, updateManager };
-
 game.init();
 
 // Expose für Debugging (nur dev)
-window.__IDLE_HACKER__ = { game, ui, updateManager };
+window.__IDLE_HACKER__ = { game, ui, menu, updateManager };
 
 // === Service Worker (PWA: Offline-Fähigkeit + sofortige Updates) ===
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {

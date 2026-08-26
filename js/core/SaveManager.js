@@ -39,7 +39,7 @@ export class SaveManager {
     }
 
     clear() {
-        localStorage.removeItem(this.key);
+        try { localStorage.removeItem(this.key); } catch { /* ignore */ }
     }
 
     hasSave() {

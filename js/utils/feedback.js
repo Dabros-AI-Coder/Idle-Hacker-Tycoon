@@ -2,6 +2,7 @@
  * Feedback — baut eine GitHub-Issue-URL mit vorbefüllten System-Infos.
  * Kein Tracking, kein Backend — nur URL-Parameter.
  */
+import { GameConfig } from '../config/GameConfig.js';
 
 const REPO_URL = 'https://github.com/Dabros-AI-Coder/Idle-Hacker-Tycoon/issues/new';
 
