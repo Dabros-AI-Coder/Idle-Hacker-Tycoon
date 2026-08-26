@@ -70,8 +70,8 @@ export class UpdateManager {
             const remote = await this.fetchRemoteVersion();
             const cmp = this.compareVersions(this.currentVersion, remote);
             if (cmp < 0) {
-                // Bereits als dismissed markiert? (gleiche Version)
-                const dismissed = (() => { try { return localStorage.getItem(this.storageKey); } catch { return null; } })();
+                // Bereits in dieser Session dismissed? (Session-only, bei PWA-Neustart erneut fragen)
+                const dismissed = (() => { try { return sessionStorage.getItem(this.storageKey); } catch { return null; } })();
                 if (!force && dismissed === remote) {
                     this.bus.emit('update:dismissed_cached', { remote, current: this.currentVersion });
                     return { status: 'dismissed', remote };
@@ -89,12 +89,14 @@ export class UpdateManager {
     }
 
     dismiss(version) {
-        try { localStorage.setItem(this.storageKey, String(version)); } catch {}
+        // Session-only: sessionStorage wird beim Schließen/Neustart der PWA geleert
+        try { sessionStorage.setItem(this.storageKey, String(version)); } catch {}
         this.bus.emit('update:dismissed', { version });
     }
 
     clearDismissed() {
-        try { localStorage.removeItem(this.storageKey); } catch {}
+        try { sessionStorage.removeItem(this.storageKey); } catch {}
+        try { localStorage.removeItem(this.storageKey); } catch {} // Altlasten aufräumen
     }
 
     async applyUpdate() {

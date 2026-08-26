@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0",
+  "version": "0.3.1",
   "build": 20260826,
-  "notes": "Prestige + Standalone-Schutz + Update-Check"
+  "notes": "Update-Check: Später gilt nur pro Session"
 }
