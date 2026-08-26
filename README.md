@@ -243,7 +243,9 @@ Die installierte App läuft ohne Browser-UI, blockiert Text-Manipulation und pr�
 - [x] **v0.3.3** — Save-Schema-Versionierung (Migration) + Export/Import
 - [x] **v0.4** — Balance-Tiefe: 8 Generatoren, 11 Upgrades, Level bis 1B, Prestige-Meilensteine
 - [x] **v0.4.1** — Open-Beta-Polish: Onboarding, Test-Suite, Social-Preview
-- [ ] **v0.4** — Hack-Minigame (Timing/Pattern)
+- [x] **v0.4.2** — Hauptmenü (Spielen/Optionen/Beenden) + Benutzeroptionen
+- [x] **v0.4.3** — Feedback mit System-Info, PWA-Install-Prompt, Plausible Analytics
+- [ ] **v0.5** — Hack-Minigame (Timing/Pattern)
 - [ ] **v0.5** — Achievements & Daily Rewards
 - [ ] **v0.6** — Sound/Musik + Themes (Light/Dark/Hacker-Green)
 - [ ] **v1.0** — Cloud-Save (optional), Leaderboard
