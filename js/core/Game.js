@@ -11,6 +11,7 @@ import { ClickSystem } from '../systems/ClickSystem.js';
 import { AutomationSystem } from '../systems/AutomationSystem.js';
 import { UpgradeSystem } from '../systems/UpgradeSystem.js';
 import { PrestigeSystem } from '../systems/PrestigeSystem.js';
+import { Options } from './Options.js';
 
 export class Game {
     /**
@@ -35,6 +36,8 @@ export class Game {
         this._saveTimer = 0;
         this._offlineEarning = 0;
         this._hiddenAt = null;
+        /** true sobald init() gelaufen ist (erst dann darf persistiert werden) */
+        this.initialized = false;
 
         this.loop = new GameLoop(GameConfig.tickRate, (dt) => this.tick(dt));
 
@@ -53,6 +56,7 @@ export class Game {
     }
 
     init() {
+        if (this.initialized) return;
         // Migration: v01 -> v02 — falls v02 leer aber v01 existiert
         let data = this.save.load();
         if (!data) {
@@ -68,9 +72,14 @@ export class Game {
             data = this._migrate(data);
             if (data) this._applyLoadedData(data);
         }
-        this.loop.start();
+        this.initialized = true;
         this.bus.emit('game:initialized', { offlineEarning: this._offlineEarning });
         this.bus.emit('economy:changed', this.economy.snapshot());
+    }
+
+    /** Spiel-Loop starten (vom Hauptmenü via "Spielen"). */
+    start() {
+        this.loop.start();
     }
 
     /**
@@ -125,6 +134,7 @@ export class Game {
      * @param {boolean} isInit - true beim Spielstart, false bei Tab-Rückkehr
      */
     _grantOffline(elapsedSec, isInit) {
+        if (!Options.get('offlineEarnings')) return;
         const capped = Math.min(elapsedSec, GameConfig.offlineCapHours * 3600);
         if (capped < GameConfig.offlineCatchUpMinSec) return;
         const perSec = this.automation.getTotalPerSec();
@@ -160,6 +170,10 @@ export class Game {
     }
 
     persist() {
+        // Vor dem ersten init() sind die Systeme leer — niemals einen
+        // existierenden Spielstand mit Nullen überschreiben (z. B. Tab
+        // im Hauptmenü geschlossen).
+        if (!this.initialized) return;
         this.save.save({
             economy: this.economy.serialize(),
             automation: this.automation.serialize(),

@@ -27,6 +27,36 @@
     <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+    <!-- HAUPTMENÜ (deckt die App bis "Spielen" ab) -->
+    <div id="main-menu">
+        <div class="menu-inner">
+            <h1 class="menu-logo">IDLE<span>HACKER</span></h1>
+            <p class="menu-sub">// TYCOON_</p>
+
+            <div id="menu-main" class="menu-panel">
+                <button id="menu-play" class="menu-btn primary">▶&nbsp; SPIELEN</button>
+                <button id="menu-options" class="menu-btn">⚙&nbsp; OPTIONEN</button>
+                <button id="menu-quit" class="menu-btn">⏻&nbsp; BEENDEN</button>
+            </div>
+
+            <div id="menu-options-panel" class="menu-panel hidden">
+                <label class="option-row" for="opt-haptics">
+                    <span>📳 Vibration</span>
+                    <input type="checkbox" id="opt-haptics" />
+                </label>
+                <label class="option-row" for="opt-offline">
+                    <span>🌙 Offline-Ertrag</span>
+                    <input type="checkbox" id="opt-offline" />
+                </label>
+                <button id="opt-reset-tutorial" class="btn menu-opt-btn">🎓 Tutorial erneut zeigen</button>
+                <button id="menu-back" class="btn menu-opt-btn secondary">← Zurück</button>
+            </div>
+
+            <p id="menu-status"></p>
+            <p id="menu-version"></p>
+        </div>
+    </div>
+
     <div id="app">
         <!-- HEADER -->
         <header id="header">

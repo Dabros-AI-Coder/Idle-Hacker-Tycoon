@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Playable-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.4.1-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-0.4.2-00ff88?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
   <img src="https://img.shields.io/badge/Vanilla_JS-ES_Modules-ffcc00?style=for-the-badge" alt="Vanilla JS" />
 </p>
@@ -34,6 +34,7 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 
 | Kategorie | Details |
 |---|---|
+| **🎮 Hauptmenü** | Screen mit *Spielen / Optionen / Beenden* — das Spiel startet erst bei „Spielen"; Optionen: Vibration, Offline-Ertrag, Tutorial zurücksetzen |
 | **👆 Aktives Hacken** | Tap/Hold auf den Hack-Button, Float-Animation, Haptik (`navigator.vibrate`) |
 | **🤖 8 Generatoren** | Script Kiddie → Botnet → Server Farm → Quantum Rig → KI-Schwarm → Darknet-Markt → Satelliten-Uplink → Neural Overmind |
 | **⬆️ 11 Upgrades** | Klick-Multiplikatoren, Generator-Boosts, Global-Boosts, Unlock-Ketten bis 40M Bits |
@@ -147,6 +148,7 @@ Idle-Hacker-Tycoon/
     ├── core/
     │   ├── Game.js         # Facade: orchestriert Systeme, Loop, Save, Offline-Catch-Up
     │   ├── GameLoop.js     # fixer Tick via setInterval (läuft minimiert weiter) + rAF-Rendering
+    │   ├── Options.js      # Benutzeroptionen (Vibration, Offline-Ertrag) — separates localStorage-Key
     │   ├── EventBus.js     # Pub/Sub
     │   ├── SaveManager.js  # localStorage Wrapper
     │   └── UpdateManager.js# version.json Check, Update-Popup, Hard-Reload
@@ -157,9 +159,11 @@ Idle-Hacker-Tycoon/
     │   ├── UpgradeSystem.js     # Once-Buy, Unlock-Kette
     │   └── PrestigeSystem.js    # Root-Zugriff: Reset + permanente Multiplikatoren
     ├── ui/
-    │   └── UIManager.js    # Rendering, Tabs, Toasts, Float-Text, Update-Modal
+    │   ├── UIManager.js    # Rendering, Tabs, Toasts, Float-Text, Update-Modal
+    │   └── MainMenu.js     # Hauptmenü: Spielen / Optionen / Beenden
     └── utils/
         ├── Formatter.js    # K/M/B/T, Zeit-Format
+        ├── haptics.js      # Zentrale Vibration (respektiert Optionen)
         └── simulate.js     # Headless Balance-Simulation (Node)
 ```
 

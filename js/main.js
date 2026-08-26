@@ -4,12 +4,18 @@
  */
 import { Game } from './core/Game.js';
 import { UIManager } from './ui/UIManager.js';
+import { MainMenu } from './ui/MainMenu.js';
 import { UpdateManager } from './core/UpdateManager.js';
 
 const game = new Game();
 const ui = new UIManager(game);
+// Menü zuerst zeigen — das Spiel startet erst bei "Spielen"
+const menu = new MainMenu(game);
 const updateManager = new UpdateManager(game.bus);
 game.updateManager = updateManager;
+
+// Expose für Debugging (nur dev)
+window.__IDLE_HACKER__ = { game, ui, menu, updateManager };
 
 game.init();
 

@@ -4,6 +4,7 @@
  */
 import { GameConfig } from '../config/GameConfig.js';
 import { Formatter } from '../utils/Formatter.js';
+import { haptic } from '../utils/haptics.js';
 
 export class UIManager {
     /** @param {import('../core/Game.js').Game} game */
@@ -54,7 +55,7 @@ export class UIManager {
             const value = this.game.click.hack();
             this._spawnFloat(`+${Formatter.formatBits(value)}`);
             // Haptik falls verfügbar
-            if (navigator.vibrate) navigator.vibrate(20);
+            haptic(20);
         };
         this.els.btnHack.addEventListener('click', hack);
         this.els.btnHack.addEventListener('touchend', hack, { passive: false });
@@ -260,7 +261,7 @@ export class UIManager {
         overlay.querySelector('[data-action="confirm"]').addEventListener('click', () => {
             const ok = this.game.doPrestige();
             close();
-            if (ok && navigator.vibrate) navigator.vibrate([20, 30, 20]);
+            if (ok) haptic([20, 30, 20]);
         });
     }
 
@@ -373,7 +374,7 @@ export class UIManager {
                     document.execCommand('copy'); // Fallback (Standalone/HTTP)
                 }
                 this.toast('Spielstand kopiert!');
-                if (navigator.vibrate) navigator.vibrate(15);
+                haptic(15);
             });
         } else {
             overlay.querySelector('[data-action="load"]').addEventListener('click', () => {
@@ -385,7 +386,7 @@ export class UIManager {
                     close();
                     this.renderAll();
                     this.toast('Spielstand geladen!');
-                    if (navigator.vibrate) navigator.vibrate([15, 30, 15]);
+                    haptic([15, 30, 15]);
                 } else {
                     const msg = result.reason === 'parse' ? 'Ungültiges JSON.'
                         : result.reason === 'newer' ? 'Spielstand stammt von einer neueren Version.'
@@ -418,7 +419,7 @@ export class UIManager {
         document.body.appendChild(overlay);
         const close = () => {
             overlay.remove();
-            if (navigator.vibrate) navigator.vibrate(20);
+            haptic(20);
         };
         overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
         overlay.querySelector('[data-action="collect"]').addEventListener('click', close);
@@ -453,7 +454,7 @@ export class UIManager {
         overlay.querySelector('[data-action="update"]').addEventListener('click', () => {
             if (this.game.updateManager) this.game.updateManager.applyUpdate(remote);
             else window.location.reload();
-            if (navigator.vibrate) navigator.vibrate(20);
+            haptic(20);
         });
     }
 
@@ -531,7 +532,7 @@ export class UIManager {
             btn.addEventListener('click', () => {
                 const ok = this.game.automation.buy(btn.dataset.buy);
                 if (!ok) this.toast('Nicht genug Bits!');
-                else if (navigator.vibrate) navigator.vibrate(10);
+                else haptic(10);
             });
         }
         this.renderEconomy();
@@ -573,7 +574,7 @@ export class UIManager {
                 const ok = this.game.upgrades.buy(btn.dataset.upgrade);
                 if (ok) {
                     this.toast('Upgrade erworben!');
-                    if (navigator.vibrate) navigator.vibrate(15);
+                    haptic(15);
                 }
             });
         }
