@@ -4,8 +4,8 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Playable-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.1.0-00ff88?style=for-the-badge" alt="Version" />
-  <img src="https://img.shields.io/badge/Mobile-First-131a2e?style=for-the-badge" alt="Mobile First" />
+  <img src="https://img.shields.io/badge/Version-0.3.1-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
   <img src="https://img.shields.io/badge/Vanilla_JS-ES_Modules-ffcc00?style=for-the-badge" alt="Vanilla JS" />
 </p>
 
@@ -38,6 +38,9 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | **🤖 5 Generatoren** | Script Kiddie → Botnet → Server Farm → Quantum Rig → KI-Schwarm |
 | **⬆️ 5 Upgrades** | Klick-Multiplikatoren, Generator-Boosts, Global-Boost, Unlock-Ketten |
 | **📈 Level-System** | 6 Ränge von *Script Kiddie* bis *Root God* mit Progress-Bar |
+| **👑 Prestige (Root-Zugriff)** | Ab 1M `totalEarned` resetten → 1 Punkt pro 1M, **+10 % Global-Multiplikator pro Punkt**, permanent |
+| **📱 PWA** | Installierbar (`manifest.json`, Icons), Standalone-Erkennung, Browser-Schutz (kein Rechtsklick/Markieren/Kopieren in der App) |
+| **🔄 Auto-Update-Check** | Installierte App prüft `version.json` (Cache-Bypass) → Bestätigungsdialog bei neuer Version; „Später" gilt nur pro Session |
 | **💾 Persistenz** | Auto-Save alle 5s + `visibilitychange` + `beforeunload`, `localStorage` |
 | **🌙 Offline-Progress** | Bis zu 12h passives Einkommen nachrechnen beim Wiederkommen |
 | **📱 Mobile-First** | `100dvh`, `safe-area-inset`, `clamp()`, 44px Touch-Targets, No-Zoom |
@@ -62,6 +65,15 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | ⚡ | Script Optimierung | Script Kiddie +75% | 300 |
 | 🛰️ | Botnet 2.0 | Botnet ×2 | 2.500 |
 | 🔥 | Übertaktung | Alle ×1.5 | 15.000 |
+
+### Prestige — Root-Zugriff
+
+| Mechanik | Wert |
+|---|---|
+| Freischaltung | ab **1.000.000** total verdienten Bits |
+| Punkte | 1 Punkt pro 1M (anteilig als Fortschritt sichtbar) |
+| Effekt | **+10 %** auf Klick + alle Generatoren, pro Punkt |
+| Reset | Bits, Generatoren & Upgrades — Punkte bleiben permanent |
 
 ---
 
@@ -92,33 +104,39 @@ Vollmodular nach **OOP-Prinzipien**. Keine Gott-Klasse, lose Kopplung via EventB
 ```
 Idle-Hacker-Tycoon/
 ├── index.html              # App-Shell, Tabs, Hack-Button
+├── manifest.json           # PWA Manifest (installierbar)
+├── version.json            # Remote-Version für Update-Check
 ├── css/
 │   └── style.css           # Mobile-First, CSS-Variablen, 560px Layout
+├── assets/                 # PWA Icons (192/512/apple-touch)
 └── js/
-    ├── main.js             # Entry, --vh Fix, Game + UI Bootstrap
+    ├── main.js             # Entry, --vh Fix, Standalone-Erkennung, Update-Schedule
     ├── config/
     │   └── GameConfig.js   # ← Einzige Stelle für Balancing
     ├── core/
     │   ├── Game.js         # Facade: orchestriert Systeme, Loop, Save
     │   ├── GameLoop.js     # fixer Tick + rAF
     │   ├── EventBus.js     # Pub/Sub
-    │   └── SaveManager.js  # localStorage Wrapper
+    │   ├── SaveManager.js  # localStorage Wrapper
+    │   └── UpdateManager.js# version.json Check, Update-Popup, Hard-Reload
     ├── systems/
     │   ├── EconomySystem.js     # Bits, Transaktionen
     │   ├── ClickSystem.js       # Tap-Logik, Multiplikatoren
     │   ├── AutomationSystem.js  # Generatoren, Kostenformel
-    │   └── UpgradeSystem.js     # Once-Buy, Unlock-Kette
+    │   ├── UpgradeSystem.js     # Once-Buy, Unlock-Kette
+    │   └── PrestigeSystem.js    # Root-Zugriff: Reset + permanente Multiplikatoren
     ├── ui/
-    │   └── UIManager.js    # Rendering, Tabs, Toasts, Float-Text
+    │   └── UIManager.js    # Rendering, Tabs, Toasts, Float-Text, Update-Modal
     └── utils/
-        └── Formatter.js    # K/M/B/T, Zeit-Format
+        ├── Formatter.js    # K/M/B/T, Zeit-Format
+        └── simulate.js     # Headless Balance-Simulation (Node)
 ```
 
 **Design-Prinzipien:**
 - **Single Source of Truth** — Balancing nur in `GameConfig.js`
 - **Event-driven** — Systeme sprechen nur über `EventBus`
 - **Separation of Concerns** — `UIManager` enthält null Game-Logik
-- **Kein Framework** — Vanilla JS (ES Modules), ~14 Dateien, <50kB
+- **Kein Framework** — Vanilla JS (ES Modules), ~17 Dateien
 
 ---
 
@@ -134,8 +152,22 @@ graph LR
     E --> A
     E --> D
     D --> F[Level-Up]
-    F --> G[Prestige - coming soon]
+    F --> G[Prestige: Root-Zugriff]
+    G --> H[+10% Global-Mult. pro Punkt]
+    H --> A
 ```
+
+---
+
+## 🔄 Update-Mechanik (PWA)
+
+Installierte Apps (Standalone) prüfen beim Start (+2s) und bei Rückkehr in den Vordergrund, ob der Server eine neuere `version.json` anbietet:
+
+1. **Neue Version gefunden** → Bestätigungsdialog mit *Aktualisieren* / *Später*
+2. **Später** → Popup schließt, gilt nur für die **aktuelle Session** — beim nächsten App-Start wird erneut gefragt
+3. **Aktualisieren** → Cache leeren, Service-Worker-Update anstoßen, Hard-Reload mit Cache-Bust
+
+> Release-Prozess: `version.json` bumpen und deployen ist genug — installierte Clients melden sich selbst.
 
 ---
 
@@ -149,15 +181,23 @@ graph LR
 
 Getestet: iOS Safari, Chrome Android, Firefox Mobile — Portrait & Landscape.
 
+### Als App installieren
+
+- **Android/Chrome:** Menü → *Zum Startbildschirm hinzufügen* / *App installieren*
+- **iOS/Safari:** Teilen → *Zum Home-Bildschirm*
+
+Die installierte App läuft ohne Browser-UI, blockiert Text-Manipulation und prüft selbstständig auf Updates.
+
 ---
 
 ## 🗺️ Roadmap
 
 - [x] **v0.1** — Core Loop, 5 Generatoren, 5 Upgrades, Save/Offline
-- [ ] **v0.2** — Prestige-System (Root-Zugriff), Partikel-Effekte
-- [ ] **v0.3** — Hack-Minigame (Timing/Pattern)
-- [ ] **v0.4** — Achievements & Daily Rewards
-- [ ] **v0.5** — Sound/Musik + Themes (Light/Dark/Hacker-Green)
+- [x] **v0.2** — PWA (installierbar, Icons), Standalone-Schutz
+- [x] **v0.3** — Prestige (Root-Zugriff), Auto-Update-Check mit Popup
+- [ ] **v0.4** — Hack-Minigame (Timing/Pattern)
+- [ ] **v0.5** — Achievements & Daily Rewards
+- [ ] **v0.6** — Sound/Musik + Themes (Light/Dark/Hacker-Green)
 - [ ] **v1.0** — Cloud-Save (optional), Leaderboard
 
 Ideen & Bugs gerne als [Issue](../../issues) eröffnen!
