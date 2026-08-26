@@ -47,8 +47,11 @@ export class EconomySystem {
         this.totalClicks = Number(data.totalClicks) || 0;
     }
 
-    reset() {
-        this.bits = GameConfig.startingBits;
+    /**
+     * @param {number} [startBits] - Startkapital (z. B. Prestige-Meilenstein-Bonus)
+     */
+    reset(startBits = GameConfig.startingBits) {
+        this.bits = startBits;
         this.totalEarned = 0;
         this.totalClicks = 0;
     }

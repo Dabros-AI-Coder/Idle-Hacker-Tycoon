@@ -17,6 +17,8 @@ export class AutomationSystem {
         this.genMultipliers = new Map();
         this.globalMultiplier = 1;
         this.prestigeMultiplier = 1;
+        /** Multiplikator aus aktiven Prestige-Meilensteinen (permanent) */
+        this.milestoneMultiplier = 1;
 
         bus.on('upgrade:applied', ({ effect }) => {
             if (effect.type === 'generator_mult') {
@@ -27,12 +29,27 @@ export class AutomationSystem {
                 this.globalMultiplier *= effect.value;
             }
         });
-        bus.on('prestige:changed', ({ multiplier }) => {
+        bus.on('prestige:changed', ({ multiplier, totalPrestiges }) => {
             this.prestigeMultiplier = multiplier || 1;
+            if (totalPrestiges !== undefined) {
+                this.milestoneMultiplier = this.calcMilestoneMultiplier(totalPrestiges);
+            }
         });
-        bus.on('prestige:committed', ({ multiplier }) => {
+        bus.on('prestige:committed', ({ multiplier, totalPrestiges }) => {
             this.prestigeMultiplier = multiplier || 1;
+            this.milestoneMultiplier = this.calcMilestoneMultiplier(totalPrestiges || 0);
         });
+    }
+
+    /** Produkt aller global_mult-Effekte aktivierter Meilensteine */
+    calcMilestoneMultiplier(totalPrestiges) {
+        let mult = 1;
+        for (const m of GameConfig.prestige.milestones) {
+            if (totalPrestiges >= m.prestiges && m.effect.type === 'global_mult') {
+                mult *= m.effect.value;
+            }
+        }
+        return mult;
     }
 
     getCost(id) {
@@ -61,7 +78,7 @@ export class AutomationSystem {
             const count = this.owned.get(def.id) || 0;
             if (count === 0) continue;
             const genMult = this.genMultipliers.get(def.id) || 1;
-            total += count * def.basePerSec * genMult * this.globalMultiplier * this.prestigeMultiplier;
+            total += count * def.basePerSec * genMult * this.globalMultiplier * this.prestigeMultiplier * this.milestoneMultiplier;
         }
         return total;
     }
@@ -71,7 +88,7 @@ export class AutomationSystem {
         if (!def) return 0;
         const count = this.owned.get(id) || 0;
         const genMult = this.genMultipliers.get(id) || 1;
-        return count * def.basePerSec * genMult * this.globalMultiplier * this.prestigeMultiplier;
+        return count * def.basePerSec * genMult * this.globalMultiplier * this.prestigeMultiplier * this.milestoneMultiplier;
     }
 
     getOwned(id) { return this.owned.get(id) || 0; }

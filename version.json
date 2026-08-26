@@ -1,5 +1,5 @@
 {
-  "version": "0.3.3",
+  "version": "0.4.0",
   "build": 20260826,
-  "notes": "Save-Robustheit: Schema-Versionierung mit Migration + Export/Import"
+  "notes": "Balance-Tiefe: 3 neue Generatoren, 6 neue Upgrades, Level bis 1B, Prestige-Meilensteine"
 }

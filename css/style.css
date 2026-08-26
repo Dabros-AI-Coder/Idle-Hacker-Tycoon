@@ -540,6 +540,25 @@ body {
 .prestige-stat span { display: block; font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
 .prestige-stat strong { display: block; font-size: 1rem; font-weight: 800; color: #c084fc; margin-top: 2px; font-variant-numeric: tabular-nums; }
 .prestige-stat strong.accent { color: var(--accent); }
+
+/* Prestige-Meilensteine */
+.prestige-milestones { margin: 14px 0 4px; }
+.prestige-milestones h4 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 8px; }
+.milestone {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px; margin-bottom: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    opacity: 0.55;
+}
+.milestone.done { opacity: 1; border-color: rgba(0,255,136,0.35); }
+.milestone-icon { font-size: 1.2rem; width: 28px; text-align: center; }
+.milestone-info { flex: 1; min-width: 0; }
+.milestone-name { font-weight: 700; font-size: 0.82rem; }
+.milestone-desc { font-size: 0.7rem; color: var(--text-dim); }
+.milestone-count { font-size: 0.72rem; font-weight: 700; color: var(--text-dim); white-space: nowrap; }
+.milestone.done .milestone-count { color: var(--accent); }
 .prestige-progress { position: relative; }
 .prestige-progress-label { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-dim); margin-bottom: 6px; }
 .prestige-progress-label strong { color: var(--text); }

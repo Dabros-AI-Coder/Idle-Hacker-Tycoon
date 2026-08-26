@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Playable-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.3.3-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-0.4.0-00ff88?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
   <img src="https://img.shields.io/badge/Vanilla_JS-ES_Modules-ffcc00?style=for-the-badge" alt="Vanilla JS" />
 </p>
@@ -35,9 +35,9 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | Kategorie | Details |
 |---|---|
 | **👆 Aktives Hacken** | Tap/Hold auf den Hack-Button, Float-Animation, Haptik (`navigator.vibrate`) |
-| **🤖 5 Generatoren** | Script Kiddie → Botnet → Server Farm → Quantum Rig → KI-Schwarm |
-| **⬆️ 5 Upgrades** | Klick-Multiplikatoren, Generator-Boosts, Global-Boost, Unlock-Ketten |
-| **📈 Level-System** | 6 Ränge von *Script Kiddie* bis *Root God* mit Progress-Bar |
+| **🤖 8 Generatoren** | Script Kiddie → Botnet → Server Farm → Quantum Rig → KI-Schwarm → Darknet-Markt → Satelliten-Uplink → Neural Overmind |
+| **⬆️ 11 Upgrades** | Klick-Multiplikatoren, Generator-Boosts, Global-Boosts, Unlock-Ketten bis 40M Bits |
+| **📈 Level-System** | 9 Ränge von *Script Kiddie* bis *Singularity* (bis 1B total) mit Progress-Bar |
 | **👑 Prestige (Root-Zugriff)** | Ab 1M `totalEarned` resetten → 1 Punkt pro 1M, **+10 % Global-Multiplikator pro Punkt**, permanent |
 | **📱 PWA** | Installierbar (`manifest.json`, Icons), Standalone-Erkennung, Browser-Schutz (kein Rechtsklick/Markieren/Kopieren in der App) |
 | **🔄 Auto-Update-Check** | Installierte App prüft `version.json` (Cache-Bypass) → Bestätigungsdialog bei neuer Version; „Später" gilt nur pro Session; Schleifenschutz falls das CDN die neue Version noch nicht ausliefert |
@@ -59,16 +59,25 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | 🖥️ | Server Farm | 30 | 1.100 | ×1.13 |
 | ⚛️ | Quantum Rig | 220 | 12.000 | ×1.14 |
 | 🧠 | KI-Schwarm | 1.600 | 130.000 | ×1.15 |
+| 🕸️ | Darknet-Markt | 12.000 | 1,5M | ×1.15 |
+| 🛰️ | Satelliten-Uplink | 95.000 | 20M | ×1.14 |
+| 🌌 | Neural Overmind | 900.000 | 300M | ×1.15 |
 
 ### Upgrades
 
 | Icon | Name | Effekt | Preis |
 |---|---|---|---:|
 | ⌨️ | Mechanische Tastatur | Klick ×2 | 50 |
-| 🥤 | Energy Drink IV | Klick ×2 | 500 |
 | ⚡ | Script Optimierung | Script Kiddie +75% | 300 |
+| 🥤 | Energy Drink IV | Klick ×2 | 500 |
 | 🛰️ | Botnet 2.0 | Botnet ×2 | 2.500 |
 | 🔥 | Übertaktung | Alle ×1.5 | 15.000 |
+| ❄️ | Quantum Cooling | Quantum Rigs ×2 | 80.000 |
+| 🦾 | Bionische Finger | Klick ×3 | 100.000 |
+| 🧬 | Schwarm-Protokoll | KI-Schwärme +150% | 600.000 |
+| 🌋 | Übertaktung II | Alle ×2 | 2,5M |
+| 🕶️ | Markt-Bot | Darknet-Märkte +150% | 4M |
+| 📡 | Uplink-Turbo | Satelliten-Uplinks +150% | 40M |
 
 ### Prestige — Root-Zugriff
 
@@ -78,6 +87,16 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | Punkte | 1 Punkt pro 1M (anteilig als Fortschritt sichtbar) |
 | Effekt | **+10 %** auf Klick + alle Generatoren, pro Punkt |
 | Reset | Bits, Generatoren & Upgrades — Punkte bleiben permanent |
+
+#### Prestige-Meilensteine (permanent)
+
+| Prestiges | Meilenstein | Bonus |
+|---:|---|---|
+| 1 | 🌱 Wiedergeboren | Start nach jedem Reset mit **500 Bits** |
+| 3 | 🛡️ Netz-Veteran | Start mit **25.000 Bits** |
+| 5 | 👑 Legende des Netzes | **×2** auf Klick & alle Server — permanent |
+
+> Zielkurven (headless validiert via `js/utils/simulate.js`, 5 Klicks/s, greedy): erstes Prestige ~16 min, Darknet-Markt ~36 min, Satelliten-Uplink ~50 min, Neural Overmind ~71 min — mit Prestige-Multiplikatoren entsprechend schneller.
 
 ---
 
@@ -211,6 +230,7 @@ Die installierte App läuft ohne Browser-UI, blockiert Text-Manipulation und pr�
 - [x] **v0.3** — Prestige (Root-Zugriff), Auto-Update-Check mit Popup
 - [x] **v0.3.2** — Hintergrund-Betrieb, Offline-Catch-Up mit Modal, Service Worker + Update-Fix
 - [x] **v0.3.3** — Save-Schema-Versionierung (Migration) + Export/Import
+- [x] **v0.4** — Balance-Tiefe: 8 Generatoren, 11 Upgrades, Level bis 1B, Prestige-Meilensteine
 - [ ] **v0.4** — Hack-Minigame (Timing/Pattern)
 - [ ] **v0.5** — Achievements & Daily Rewards
 - [ ] **v0.6** — Sound/Musik + Themes (Light/Dark/Hacker-Green)

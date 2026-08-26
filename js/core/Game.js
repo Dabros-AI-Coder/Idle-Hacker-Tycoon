@@ -224,8 +224,9 @@ export class Game {
     doPrestige() {
         const result = this.prestige.commit();
         if (!result) return false;
-        // Reset spielrelevante Systeme, aber nicht prestige selbst
-        this.economy.reset();
+        // Reset spielrelevante Systeme, aber nicht prestige selbst.
+        // Start-Bits aus aktiven Meilensteinen (basieren auf NEUEM Prestige-Stand).
+        this.economy.reset(this.prestige.getStartBonus());
         this.automation.reset();
         this.upgrades.reset();
         // Click/Automation hören prestige:changed bereits und setzen Multiplier

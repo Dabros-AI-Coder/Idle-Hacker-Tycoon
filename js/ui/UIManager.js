@@ -193,6 +193,7 @@ export class UIManager {
                     ${can ? `Bereit! Du erhältst <strong>+${pending} Keys</strong> → nächster Multiplikator <strong>×${nextMult.toFixed(2)}</strong>.` : `Sammle <strong>${fmt(Math.max(0, threshold - total))} Bits</strong> mehr (total) um Root-Zugriff freizuschalten.`}
                     <br><span style="color:var(--text-dim)">Reset setzt Bits, Server &amp; Upgrades zurück — Root-Keys bleiben.</span>
                 </div>
+                ${this._renderMilestones(snap)}
                 <button id="btn-prestige" class="btn-prestige ${can ? 'ready' : ''}" ${can ? '' : 'disabled'}>
                     ${can ? `ROOT-ZUGRIFF — +${pending} Keys freischalten` : `Gesperrt — ${fmt(threshold)} benötigt`}
                 </button>
@@ -205,6 +206,25 @@ export class UIManager {
                 this._showPrestigeModal(pending, nextMult);
             });
         }
+    }
+
+    /** Meilenstein-Liste für den Prestige-Tab */
+    _renderMilestones(snap) {
+        const all = GameConfig.prestige.milestones;
+        if (!all || all.length === 0) return '';
+        const activeIds = new Set(snap.activeMilestones.map(m => m.prestiges));
+        const items = all.map(m => {
+            const done = activeIds.has(m.prestiges);
+            return `<div class="milestone ${done ? 'done' : ''}">
+                <span class="milestone-icon">${done ? m.icon : '🔒'}</span>
+                <div class="milestone-info">
+                    <div class="milestone-name">${m.name}</div>
+                    <div class="milestone-desc">${m.description}</div>
+                </div>
+                <span class="milestone-count">${done ? '✓' : `${snap.totalPrestiges}/${m.prestiges}`}</span>
+            </div>`;
+        }).join('');
+        return `<div class="prestige-milestones"><h4>Meilensteine</h4>${items}</div>`;
     }
 
     _showPrestigeModal(pending, nextMult) {

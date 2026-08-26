@@ -24,6 +24,25 @@ export class PrestigeSystem {
         return 1 + this.points * this.getMultiplierPerPoint();
     }
 
+    /** Alle bereits aktivierten Meilensteine */
+    getActiveMilestones() {
+        return GameConfig.prestige.milestones.filter(m => this.totalPrestiges >= m.prestiges);
+    }
+
+    /** Nächster noch nicht erreichter Meilenstein (oder null) */
+    getNextMilestone() {
+        return GameConfig.prestige.milestones.find(m => this.totalPrestiges < m.prestiges) ?? null;
+    }
+
+    /** Start-Bits für den nächsten Reset (Summe aller aktiven start_bits-Effekte) */
+    getStartBonus() {
+        let bits = 0;
+        for (const m of this.getActiveMilestones()) {
+            if (m.effect.type === 'start_bits') bits += m.effect.value;
+        }
+        return bits;
+    }
+
     /** Punkte die man JETZT bei Prestige erhalten würde */
     getPendingGain() {
         if (!this.canPrestige()) return 0;
@@ -46,7 +65,7 @@ export class PrestigeSystem {
         this.totalPrestiges += 1;
         const multiplier = this.getMultiplier();
         this.bus.emit('prestige:committed', { gain, points: this.points, multiplier, totalPrestiges: this.totalPrestiges });
-        this.bus.emit('prestige:changed', { points: this.points, multiplier, pendingGain: 0 });
+        this.bus.emit('prestige:changed', { points: this.points, multiplier, pendingGain: 0, totalPrestiges: this.totalPrestiges });
         return { gain, points: this.points, multiplier };
     }
 
@@ -57,6 +76,8 @@ export class PrestigeSystem {
             multiplier: this.getMultiplier(),
             pendingGain: this.getPendingGain(),
             canPrestige: this.canPrestige(),
+            activeMilestones: this.getActiveMilestones(),
+            nextMilestone: this.getNextMilestone(),
         };
     }
 
@@ -69,13 +90,13 @@ export class PrestigeSystem {
         this.points = Number(data.points) || 0;
         this.totalPrestiges = Number(data.totalPrestiges) || 0;
         // Nach Load Multiplier broadcasten damit Click/Automation ihn übernehmen
-        this.bus.emit('prestige:changed', { points: this.points, multiplier: this.getMultiplier(), pendingGain: this.getPendingGain() });
+        this.bus.emit('prestige:changed', { points: this.points, multiplier: this.getMultiplier(), pendingGain: this.getPendingGain(), totalPrestiges: this.totalPrestiges });
     }
 
     resetHard() {
         // Nur für kompletten Save-Wipe (Stats -> Fortschritt löschen)
         this.points = 0;
         this.totalPrestiges = 0;
-        this.bus.emit('prestige:changed', { points: 0, multiplier: 1, pendingGain: 0 });
+        this.bus.emit('prestige:changed', { points: 0, multiplier: 1, pendingGain: 0, totalPrestiges: 0 });
     }
 }

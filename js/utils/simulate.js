@@ -88,8 +88,8 @@ export function simulate(durationSec = 1800, clicksPerSec = 5) {
     const milestones = {};
     let clickCarry = 0;
 
-    // Meilensteine: erster Kauf jedes Generators + 10k/100k/1M totalEarned
-    const thresholds = [1_000, 10_000, 100_000, 1_000_000];
+    // Meilensteine: erster Kauf jedes Generators + totalEarned-Schwellen
+    const thresholds = [1_000, 10_000, 100_000, 1_000_000, 10_000_000, 100_000_000];
     const thresholdHitAt = {};
 
     function snapshot(t) {
@@ -139,14 +139,14 @@ export function simulate(durationSec = 1800, clicksPerSec = 5) {
 }
 
 function formatLog(log) {
-    const header = 't(s) | bits      | total     | perSec | owned (kiddie/bot/farm/quantum/ai) | upgrades';
+    const ids = GameConfig.generators.map(g => g.id);
+    const header = `t(s) | bits      | total     | perSec | owned (${ids.join('/')}) | upgrades`;
     const lines = [header, '-'.repeat(header.length)];
     for (const e of log) {
-        const o = e.owned;
-        const ownedStr = `${o.script_kiddie||0}/${o.botnet||0}/${o.server_farm||0}/${o.quantum_rig||0}/${o.ai_swarm||0}`;
+        const ownedStr = ids.map(id => e.owned[id] || 0).join('/');
         const up = e.upgrades.length ? e.upgrades.join(',') : '-';
         lines.push(
-            `${String(e.t).padStart(4)} | ${Formatter.formatBits(e.bits).padStart(9)} | ${Formatter.formatBits(e.totalEarned).padStart(9)} | ${Formatter.formatPerSec(e.perSec).padStart(6)} | ${ownedStr.padStart(22)} | ${up}`
+            `${String(e.t).padStart(4)} | ${Formatter.formatBits(e.bits).padStart(9)} | ${Formatter.formatBits(e.totalEarned).padStart(9)} | ${Formatter.formatPerSec(e.perSec).padStart(6)} | ${ownedStr.padStart(30)} | ${up}`
         );
     }
     return lines.join('\n');
@@ -168,7 +168,7 @@ if (import.meta.url === `file://${process.argv[1].replace(/\\/g, '/')}` || proce
         console.log(`${m ? `✓ ${gen.name.padEnd(14)} @ ${String(Math.round(m.at)).padStart(4)}s` : `✗ ${gen.name.padEnd(14)} — nicht erreicht`}`);
     }
     console.log('\n--- TotalEarned Schwellen ---');
-    for (const th of [1_000, 10_000, 100_000, 1_000_000]) {
+    for (const th of [1_000, 10_000, 100_000, 1_000_000, 10_000_000, 100_000_000]) {
         const at = thresholdHitAt[th];
         console.log(`${Formatter.formatBits(th).padStart(6)} total @ ${at !== undefined ? Math.round(at)+'s ('+(at/60).toFixed(1)+'min)' : '— nicht erreicht'}`);
     }

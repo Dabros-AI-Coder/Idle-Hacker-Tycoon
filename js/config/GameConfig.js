@@ -3,7 +3,7 @@
  * Modular: jede Balance-Änderung nur hier.
  */
 export const GameConfig = Object.freeze({
-    version: '0.3.3',
+    version: '0.4.0',
     saveKey: 'idle_hacker_tycoon_v02',
     // Version des Save-Schemas (unabhängig vom localStorage-Key).
     // Bei Schema-Änderungen: hier erhöhen + Migration in Game.MIGRATIONS ergänzen.
@@ -24,6 +24,13 @@ export const GameConfig = Object.freeze({
         gainDivisor: 1_000_000,
         // +10% global auf Klick + Generatoren pro Punkt
         multiplierPerPoint: 0.10,
+        // Meilenstein-Boni: ab N Gesamt-Prestiges permanent aktiv
+        // effect.type: 'start_bits' (Bits nach Reset) | 'global_mult' (Multiplikator)
+        milestones: [
+            { prestiges: 1, icon: '🌱', name: 'Wiedergeboren', description: 'Nach jedem Root-Zugriff startest du mit 500 Bits.', effect: { type: 'start_bits', value: 500 } },
+            { prestiges: 3, icon: '🛡️', name: 'Netz-Veteran', description: 'Start mit 25.000 Bits nach jedem Root-Zugriff.', effect: { type: 'start_bits', value: 25_000 } },
+            { prestiges: 5, icon: '👑', name: 'Legende des Netzes', description: '×2 auf Klick & alle Server — permanent.', effect: { type: 'global_mult', value: 2 } },
+        ],
     },
 
     generators: [
@@ -71,6 +78,33 @@ export const GameConfig = Object.freeze({
             baseCost: 130000,
             costMultiplier: 1.15,
             basePerSec: 1600,
+        },
+        {
+            id: 'dark_market',
+            name: 'Darknet-Markt',
+            icon: '🕸️',
+            description: 'Waffenhandel & Datenauctionen',
+            baseCost: 1500000,
+            costMultiplier: 1.15,
+            basePerSec: 12000,
+        },
+        {
+            id: 'satellite_uplink',
+            name: 'Satelliten-Uplink',
+            icon: '🛰️',
+            description: 'Orbitale Abhör-Infrastruktur',
+            baseCost: 20000000,
+            costMultiplier: 1.14,
+            basePerSec: 95000,
+        },
+        {
+            id: 'neural_overmind',
+            name: 'Neural Overmind',
+            icon: '🌌',
+            description: 'Verteiltes Super-Wesen aus gestohlenen Gehirnen',
+            baseCost: 300000000,
+            costMultiplier: 1.15,
+            basePerSec: 900000,
         },
     ],
 
@@ -120,10 +154,64 @@ export const GameConfig = Object.freeze({
             effect: { type: 'global_mult', value: 1.5 },
             requires: null,
         },
+        {
+            id: 'quantum_cooling',
+            name: 'Quantum Cooling',
+            icon: '❄️',
+            description: 'Quantum Rigs ×2 Output',
+            cost: 80000,
+            effect: { type: 'generator_mult', target: 'quantum_rig', value: 2 },
+            requires: null,
+        },
+        {
+            id: 'bionic_fingers',
+            name: 'Bionische Finger',
+            icon: '🦾',
+            description: 'Klick-Power ×3',
+            cost: 100000,
+            effect: { type: 'click_mult', value: 3 },
+            requires: 'energy_drink',
+        },
+        {
+            id: 'swarm_protocol',
+            name: 'Schwarm-Protokoll',
+            icon: '🧬',
+            description: 'KI-Schwärme +150% Output',
+            cost: 600000,
+            effect: { type: 'generator_mult', target: 'ai_swarm', value: 2.5 },
+            requires: null,
+        },
+        {
+            id: 'overclock_ii',
+            name: 'Übertaktung II',
+            icon: '🌋',
+            description: 'Alle Server +100%',
+            cost: 2500000,
+            effect: { type: 'global_mult', value: 2 },
+            requires: 'overclock',
+        },
+        {
+            id: 'market_bot',
+            name: 'Markt-Bot',
+            icon: '🕶️',
+            description: 'Darknet-Märkte +150% Output',
+            cost: 4000000,
+            effect: { type: 'generator_mult', target: 'dark_market', value: 2.5 },
+            requires: null,
+        },
+        {
+            id: 'uplink_turbo',
+            name: 'Uplink-Turbo',
+            icon: '📡',
+            description: 'Satelliten-Uplinks +150% Output',
+            cost: 40000000,
+            effect: { type: 'generator_mult', target: 'satellite_uplink', value: 2.5 },
+            requires: null,
+        },
     ],
 
-    levelThresholds: [0, 100, 1000, 10000, 100000, 1000000],
-    levelNames: ['Script Kiddie', 'Junior Hacker', 'Hacker', 'Elite Hacker', 'Cyber Ghost', 'Root God'],
+    levelThresholds: [0, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000],
+    levelNames: ['Script Kiddie', 'Junior Hacker', 'Hacker', 'Elite Hacker', 'Cyber Ghost', 'Root God', 'Netz-Baron', 'Daten-Kaiser', 'Singularity'],
 
     getGenerator(id) {
         return this.generators.find(g => g.id === id) ?? null;
