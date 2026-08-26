@@ -4,14 +4,17 @@
  */
 import { Game } from './core/Game.js';
 import { UIManager } from './ui/UIManager.js';
+import { UpdateManager } from './core/UpdateManager.js';
 
 const game = new Game();
 const ui = new UIManager(game);
+const updateManager = new UpdateManager(game.bus);
+game.updateManager = updateManager;
 
 game.init();
 
 // Expose für Debugging (nur dev)
-window.__IDLE_HACKER__ = { game, ui };
+window.__IDLE_HACKER__ = { game, ui, updateManager };
 
 // Dynamische Viewport-Höhe fix für mobile Browser (100dvh Fallback)
 function setVh() {
@@ -40,6 +43,19 @@ applyStandaloneProtection();
 try {
     window.matchMedia('(display-mode: standalone)').addEventListener('change', applyStandaloneProtection);
 } catch { /* Safari <14 fallback */ }
+
+// === Update-Check (nur als installierte App) ===
+function scheduleUpdateCheck() {
+    // Kurz verzögern damit UI bereit ist
+    setTimeout(() => updateManager.check({ onlyStandalone: true }), 2000);
+}
+scheduleUpdateCheck();
+// Bei Rückkehr in App erneut prüfen (z.B. nach längerer Pause)
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && updateManager.isStandalone()) {
+        updateManager.check({ onlyStandalone: true });
+    }
+});
 
 // Blockiere Browser-Defaults nur im Standalone-Modus
 const blockIfStandalone = (e) => {

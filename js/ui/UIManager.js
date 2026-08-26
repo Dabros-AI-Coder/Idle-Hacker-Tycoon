@@ -98,6 +98,9 @@ export class UIManager {
             }
         });
         this.bus.on('game:reset', () => this.renderAll());
+        // Update verfügbar (nur als installierte App via UpdateManager onlyStandalone)
+        this.bus.on('update:available', ({ remote, current }) => this._showUpdateModal(remote, current));
+        this.bus.on('update:uptodate', () => { /* silent */ });
     }
 
     _switchTab(name) {
@@ -215,6 +218,39 @@ export class UIManager {
             const ok = this.game.doPrestige();
             close();
             if (ok && navigator.vibrate) navigator.vibrate([20, 30, 20]);
+        });
+    }
+
+    _showUpdateModal(remote, current) {
+        // Verhindere Doppel-Popup
+        if (document.querySelector('.modal.update-modal')) return;
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `
+            <div class="modal update-modal">
+                <h3><span class="update-icon">↻</span> Update verfügbar</h3>
+                <p>Neue Version <strong>${remote}</strong> verfügbar.<br>
+                Installiert: <strong>${current}</strong><br>
+                Tippe <strong>Aktualisieren</strong> um neu zu laden — dein Spielstand bleibt erhalten.</p>
+                <div class="modal-actions">
+                    <button class="btn-modal secondary" data-action="later">Später</button>
+                    <button class="btn-modal primary update" data-action="update">Aktualisieren</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        const close = (dismissVersion = null) => {
+            overlay.remove();
+            if (dismissVersion && this.game.updateManager) {
+                this.game.updateManager.dismiss(dismissVersion);
+            }
+        };
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(remote); });
+        overlay.querySelector('[data-action="later"]').addEventListener('click', () => close(remote));
+        overlay.querySelector('[data-action="update"]').addEventListener('click', () => {
+            if (this.game.updateManager) this.game.updateManager.applyUpdate();
+            else window.location.reload();
+            if (navigator.vibrate) navigator.vibrate(20);
         });
     }
 

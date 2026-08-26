@@ -3,6 +3,7 @@
  * Modular: jede Balance-Änderung nur hier.
  */
 export const GameConfig = Object.freeze({
+    version: '0.3.0',
     saveKey: 'idle_hacker_tycoon_v02',
     saveIntervalMs: 5000,
     offlineCapHours: 12,
