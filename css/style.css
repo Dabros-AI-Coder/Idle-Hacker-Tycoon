@@ -473,6 +473,29 @@ body {
 @media (max-height: 600px) {
     #btn-hack { width: 120px; height: 120px; }
 }
+/* === STANDALONE APP PROTECTION === */
+/* Greift nur wenn JS die Klasse html.standalone setzt (PWA / Add to Home Screen) */
+html.standalone,
+html.standalone body {
+    -webkit-touch-callout: none;
+    overscroll-behavior: none;
+}
+html.standalone *,
+html.standalone *::before,
+html.standalone *::after {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+/* Eingabefelder ausnehmen falls später welche kommen */
+html.standalone input,
+html.standalone textarea,
+html.standalone [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+}
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
