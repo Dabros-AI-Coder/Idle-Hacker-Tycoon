@@ -573,6 +573,52 @@ html[data-theme="auto"] #crt-overlay {
 }
 .btn-buy:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* === CATEGORIES (Generators / Upgrades) === */
+.category {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-hover) 100%);
+    border-bottom: 1px solid var(--border);
+    user-select: none;
+    transition: background 0.15s;
+}
+.category-header:hover { background: var(--bg-card-hover); }
+.category-header .cat-icon { font-size: 1.15rem; flex-shrink: 0; }
+.category-header .cat-info { flex: 1; min-width: 0; }
+.category-header .cat-name { font-size: 0.85rem; font-weight: 800; letter-spacing: 0.04em; }
+.category-header .cat-desc { font-size: 0.68rem; color: var(--text-dim); line-height: 1.2; }
+.category-header .cat-badge {
+    font-size: 0.68rem; font-weight: 800;
+    background: rgba(var(--accent-rgb),0.12); color: var(--accent);
+    border: 1px solid rgba(var(--accent-rgb),0.25);
+    border-radius: 99px; padding: 4px 8px; flex-shrink: 0;
+}
+.category-header .cat-toggle { font-size: 0.75rem; color: var(--text-dim); transition: transform 0.2s; flex-shrink: 0; }
+.category.collapsed .cat-toggle { transform: rotate(-90deg); }
+.category.collapsed .category-grid { display: none; }
+.category.collapsed .category-header { border-bottom: none; }
+.category-grid { padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+
+.filter-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.filter-chip {
+    padding: 6px 12px; border-radius: 99px; border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03); color: var(--text-dim);
+    font-size: 0.75rem; font-weight: 700; cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.filter-chip.active { background: var(--accent); color: #0a0e1a; border-color: var(--accent); box-shadow: 0 2px 8px rgba(var(--accent-rgb),0.3); }
+.filter-chip:hover { border-color: rgba(255,255,255,0.18); color: var(--text); }
+
 /* Upgrade items specific */
 .item.upgrade-owned { opacity: 0.55; }
 .item.upgrade-owned .btn-buy { background: #1a2e22; color: var(--accent); }
