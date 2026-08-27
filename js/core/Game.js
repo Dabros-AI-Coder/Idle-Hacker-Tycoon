@@ -11,6 +11,8 @@ import { ClickSystem } from '../systems/ClickSystem.js';
 import { AutomationSystem } from '../systems/AutomationSystem.js';
 import { UpgradeSystem } from '../systems/UpgradeSystem.js';
 import { PrestigeSystem } from '../systems/PrestigeSystem.js';
+import { AchievementSystem } from '../systems/AchievementSystem.js';
+import { DailyRewardSystem } from '../systems/DailyRewardSystem.js';
 import { Options } from './Options.js';
 
 export class Game {
@@ -29,6 +31,8 @@ export class Game {
         this.automation = new AutomationSystem(this.bus, this.economy);
         this.upgrades = new UpgradeSystem(this.bus, this.economy, this.automation);
         this.prestige = new PrestigeSystem(this.bus, this.economy);
+        this.achievements = new AchievementSystem(this.bus, this);
+        this.daily = new DailyRewardSystem(this.bus, this);
 
         this.playtimeSec = 0;
         this._saveTimer = 0;
@@ -45,6 +49,12 @@ export class Game {
                 this.offlineCapMultiplier *= effect.value;
             }
         });
+        // Achievements live prüfen
+        this.bus.on('economy:changed', () => this.achievements.check());
+        this.bus.on('automation:bought', () => this.achievements.check());
+        this.bus.on('upgrade:bought', () => this.achievements.check());
+        this.bus.on('prestige:changed', () => this.achievements.check());
+        this.bus.on('game:initialized', () => this.achievements.check());
 
         this.loop = new GameLoop(GameConfig.tickRate, (dt) => this.tick(dt));
 
@@ -128,6 +138,8 @@ export class Game {
         try { this.automation.load(data.automation); } catch (e) { console.warn('[Game] automation load failed', e); }
         try { this.upgrades.load(data.upgrades); } catch (e) { console.warn('[Game] upgrades load failed', e); }
         try { this.prestige.load(data.prestige); } catch (e) { console.warn('[Game] prestige load failed', e); }
+        try { this.achievements.load(data.achievements); } catch (e) { console.warn('[Game] achievements load failed', e); }
+        try { this.daily.load(data.daily); } catch (e) { console.warn('[Game] daily load failed', e); }
         this.playtimeSec = Number.isFinite(data.playtimeSec) ? data.playtimeSec : 0;
         this.offlineCapMultiplier = Number.isFinite(data.offlineCapMultiplier) ? data.offlineCapMultiplier : 1;
         if (data.savedAt) {
@@ -226,15 +238,14 @@ export class Game {
     }
 
     persist() {
-        // Vor dem ersten init() sind die Systeme leer — niemals einen
-        // existierenden Spielstand mit Nullen überschreiben (z. B. Tab
-        // im Hauptmenü geschlossen).
         if (!this.initialized) return;
         this.save.save({
             economy: this.economy.serialize(),
             automation: this.automation.serialize(),
             upgrades: this.upgrades.serialize(),
             prestige: this.prestige.serialize(),
+            achievements: this.achievements.serialize(),
+            daily: this.daily.serialize(),
             playtimeSec: this.playtimeSec,
             offlineCapMultiplier: this.offlineCapMultiplier,
         });
@@ -271,11 +282,12 @@ export class Game {
         data = this._migrate(data);
         if (!data) return { ok: false, reason: 'newer' };
 
-        // Systeme zurücksetzen damit keine Altlasten vom aktuellen Stand übrig bleiben
         this.economy.reset();
         this.automation.reset();
         this.upgrades.reset();
         this.prestige.resetHard();
+        this.achievements.reset();
+        this.daily.reset();
         this._offlineEarning = 0;
 
         // Offline-Ertrag des Imports NICHT gutschreiben (sonst export->import farming)
@@ -309,12 +321,13 @@ export class Game {
 
     reset() {
         this.save.clear();
-        // Legacy Key auch löschen
         try { localStorage.removeItem('idle_hacker_tycoon_v01'); } catch {}
         this.economy.reset();
         this.automation.reset();
         this.upgrades.reset();
         this.prestige.resetHard();
+        this.achievements.reset();
+        this.daily.reset();
         this.playtimeSec = 0;
         this._offlineEarning = 0;
         this._hiddenAt = null;

@@ -8,6 +8,7 @@ const DEFAULTS = {
     haptics: true,          // Vibration bei Klicks/Käufen
     offlineEarnings: true,  // Offline-/Catch-Up-Ertrag gutschreiben
     username: '',           // Hacker-Name für Rangliste
+    sound: true,            // WebAudio Feedback
 };
 
 class _Options {

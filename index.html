@@ -61,10 +61,14 @@
                         <span>📳 Vibration</span>
                         <input type="checkbox" id="opt-haptics" />
                     </label>
-                    <label class="option-row" for="opt-offline">
-                        <span>🌙 Offline-Ertrag</span>
-                        <input type="checkbox" id="opt-offline" />
-                    </label>
+                <label class="option-row" for="opt-sound">
+                    <span>🔊 Sound</span>
+                    <input type="checkbox" id="opt-sound" />
+                </label>
+                <label class="option-row" for="opt-offline">
+                    <span>🌙 Offline-Ertrag</span>
+                    <input type="checkbox" id="opt-offline" />
+                </label>
                     <button id="opt-reset-tutorial" class="btn menu-opt-btn">🎓 Tutorial erneut zeigen</button>
                     <button id="btn-reset" class="btn btn-danger menu-opt-btn">🗑️ Fortschritt löschen</button>
                 </div>
@@ -99,7 +103,7 @@
         <header id="header">
             <div class="header-left">
                 <h1 class="logo">IDLE<span>HACKER</span></h1>
-                <span class="subtitle">TYCOON v0.5</span>
+                <span class="subtitle">TYCOON v0.6</span>
             </div>
             <div class="header-right">
                 <div class="stat-box">
@@ -144,6 +148,7 @@
                 <button class="tab-btn" data-tab="upgrades">Upgrades</button>
                 <button class="tab-btn" data-tab="prestige">Root</button>
                 <button class="tab-btn" data-tab="leaderboard">Rang</button>
+                <button class="tab-btn" data-tab="achievements">Erfolge</button>
             </nav>
 
             <!-- TAB CONTENTS -->
@@ -176,6 +181,11 @@
                     <ol id="npc-list" class="npc-list"></ol>
                     <p class="leaderboard-footnote">19 NPCs • rein lokal • Singleplayer bleibt Singleplayer</p>
                 </div>
+            </section>
+
+            <section id="tab-achievements" class="tab-content">
+                <div id="daily-card" class="card"></div>
+                <div id="achievements-list" class="list" style="margin-top:12px;"></div>
             </section>
         </main>
 

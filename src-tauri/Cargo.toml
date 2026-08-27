@@ -1,6 +1,6 @@
 [package]
 name = "idle-hacker-tycoon"
-version = "0.5.0"
+version = "0.6.0"
 description = "Idle Hacker Tycoon - Tauri Desktop"
 authors = ["Dabros-AI-Coder"]
 edition = "2021"

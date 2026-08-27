@@ -6,6 +6,8 @@ import { GameConfig } from '../config/GameConfig.js';
 import { Formatter } from '../utils/Formatter.js';
 import { haptic } from '../utils/haptics.js';
 import { buildFeedbackUrl } from '../utils/feedback.js';
+import { audio } from '../utils/audio.js';
+import { HackMinigame } from './HackMinigame.js';
 
 export class UIManager {
     /** @param {import('../core/Game.js').Game} game */
@@ -45,19 +47,43 @@ export class UIManager {
             btnTutorialSkip: $('btn-tutorial-skip'),
             feedbackLink: $('feedback-link'),
             toastContainer: $('toast-container'),
+            dailyCard: $('daily-card'),
+            achievementsList: $('achievements-list'),
             tabs: [...document.querySelectorAll('.tab-btn')],
             tabContents: [...document.querySelectorAll('.tab-content')],
         };
+        this.hackMinigame = new HackMinigame(this.game, this);
+    }
+
+    _showMinigameResult(hit, mult) {
+        this._spawnFloat(hit ? `★ +${mult}× BONUS!` : 'Miss');
     }
 
     _bindEvents() {
-        // Hack Button — touch + click, prevent double-fire
-        const hack = (e) => {
+        const hack = async (e) => {
             e.preventDefault();
+            if (this.hackMinigame.active) {
+                this.hackMinigame._hit();
+                return;
+            }
+            const pending = this.hackMinigame.onHack();
+            if (pending) {
+                const mult = await pending;
+                const value = this.game.click.hack();
+                if (mult > 1) {
+                    const bonus = value * (mult - 1);
+                    this.game.economy.addBits(bonus);
+                    this._spawnFloat(`+${Formatter.formatBits(value * mult)} ★`);
+                    haptic([20, 30]); audio.hackMinigameHit();
+                } else {
+                    this._spawnFloat(`+${Formatter.formatBits(value)}`);
+                    haptic(20); audio.click();
+                }
+                return;
+            }
             const value = this.game.click.hack();
             this._spawnFloat(`+${Formatter.formatBits(value)}`);
-            // Haptik falls verfügbar
-            haptic(20);
+            haptic(20); audio.click();
         };
         if (this.els.btnHack) {
             this.els.btnHack.addEventListener('click', hack);
@@ -67,7 +93,7 @@ export class UIManager {
         // Tabs
         if (this.els.tabs) {
             for (const btn of this.els.tabs) {
-                btn.addEventListener('click', () => this._switchTab(btn.dataset.tab));
+                btn.addEventListener('click', () => { this._switchTab(btn.dataset.tab); audio.click(); haptic(10); });
             }
         }
 
@@ -108,6 +134,8 @@ export class UIManager {
         this.bus.on('prestige:changed', () => { this.renderPrestige(); this.renderEconomy(); this.renderGenerators(); });
         this.bus.on('prestige:committed', ({ gain, multiplier }) => {
             this.toast(`Root-Zugriff! +${gain} Keys · ×${multiplier.toFixed(2)} Multiplikator`);
+            audio.prestige();
+            haptic([20, 30, 20]);
             this.renderAll();
         });
         this.bus.on('game:prestige', () => this.renderAll());
@@ -124,6 +152,8 @@ export class UIManager {
         this.bus.on('game:reset', () => this.renderAll());
         this.bus.on('save:corrupted', ({ key }) => this._showCorruptedModal(key));
         this.bus.on('save:newer', ({ version }) => this._showNewerModal(version));
+        this.bus.on('achievement:unlocked', ({ def }) => { this.toast(`🏆 ${def.name} freigeschaltet!`); audio.buy(); this.renderAchievements(); });
+        this.bus.on('daily:claimed', ({ amount, streak }) => { this.toast(`Tagesbonus Tag ${streak}: +${Formatter.formatBits(amount)} Bits`); audio.buy(); this.renderDaily(); this.renderAchievements(); });
         // Tutorial: bei relevanten Events weiterschalten
         this.bus.on('game:initialized', () => {
             this._initTutorial();
@@ -151,6 +181,8 @@ export class UIManager {
         this.renderGenerators();
         this.renderUpgrades();
         this.renderPrestige();
+        this.renderAchievements();
+        this.renderDaily();
         this.renderTick();
     }
 
@@ -181,9 +213,51 @@ export class UIManager {
         if (this.els.statPrestigeCount) this.els.statPrestigeCount.textContent = String(this.game.prestige.totalPrestiges);
         // Prestige Fortschritt live ticken
         if (this.els.prestigeContent && document.getElementById('tab-prestige')?.classList.contains('active')) {
-            // Nur wenn Tab sichtbar, sonst alle 1s via economy:changed
             this.renderPrestige();
         }
+        if (this.els.dailyCard && document.getElementById('tab-achievements')?.classList.contains('active')) {
+            this.renderDaily();
+        }
+    }
+
+    renderDaily() {
+        if (!this.els.dailyCard) return;
+        const can = this.game.daily.canClaim();
+        const streak = this.game.daily.streak;
+        const reward = this.game.daily.getRewardAmount();
+        const nextStreak = Math.min(streak + 1, 7);
+        this.els.dailyCard.innerHTML = `
+            <div class="daily-header">
+                <div><h3>📅 Tagesbonus</h3><p>Streak: ${streak} Tage • Nächster: Tag ${nextStreak}</p></div>
+                <div class="daily-reward">+${Formatter.formatBits(reward)}</div>
+            </div>
+            <button class="btn-buy ${can ? 'can-afford' : ''}" id="btn-daily-claim" ${can ? '' : 'disabled'}>${can ? `Abholen +${Formatter.formatBits(reward)}` : 'Heute schon abgeholt'}</button>
+        `;
+        const btn = document.getElementById('btn-daily-claim');
+        if (btn) btn.addEventListener('click', () => {
+            const r = this.game.daily.claim();
+            if (r) { haptic([10,20]); audio.buy(); } else audio.buyFail();
+            this.renderDaily();
+        });
+    }
+
+    renderAchievements() {
+        if (!this.els.achievementsList) return;
+        const all = this.game.achievements.getAll();
+        const unlocked = all.filter(a=>a.unlocked).length;
+        this.els.achievementsList.innerHTML = `
+            <div class="achievements-header"><h3>🏆 Erfolge ${unlocked}/${all.length}</h3></div>
+            ${all.map(a=>`
+                <div class="item ${a.unlocked ? 'can-afford' : ''}" style="${a.unlocked ? '' : 'opacity:0.55'}">
+                    <div class="item-icon">${a.icon}</div>
+                    <div class="item-info">
+                        <div class="item-name">${a.name} ${a.unlocked ? '✓' : '🔒'}</div>
+                        <div class="item-desc">${a.desc}</div>
+                    </div>
+                    <span class="item-owned">${a.unlocked ? '✓' : ''}</span>
+                </div>
+            `).join('')}
+        `;
     }
 
     renderPrestige() {
@@ -621,8 +695,8 @@ export class UIManager {
         for (const btn of this.els.generatorsList.querySelectorAll('[data-buy]')) {
             btn.addEventListener('click', () => {
                 const ok = this.game.automation.buy(btn.dataset.buy);
-                if (!ok) this.toast('Nicht genug Bits!');
-                else haptic(10);
+                if (!ok) { this.toast('Nicht genug Bits!'); audio.buyFail(); }
+                else { haptic(10); audio.buy(); }
             });
         }
         this.renderEconomy();
@@ -665,7 +739,8 @@ export class UIManager {
                 if (ok) {
                     this.toast('Upgrade erworben!');
                     haptic(15);
-                }
+                    audio.buy();
+                } else audio.buyFail();
             });
         }
     }

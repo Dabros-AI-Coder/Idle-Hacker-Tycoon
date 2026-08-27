@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Polished-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.5.0-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-0.6.0-00ff88?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
   <img src="https://img.shields.io/badge/Stack-Vite_Tauri-ffcc00?style=for-the-badge" alt="Vite Tauri" />
 </p>
@@ -54,6 +54,10 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | **📴 Offline-fähig** | Service Worker (Network-First) — Updates sofort, offline letzter Stand |
 | **📱 Mobile-First** | `100dvh`, `safe-area-inset`, `clamp()`, 44px Touch-Targets, No-Zoom |
 | **🎓 Onboarding** | 4-stufiges Tutorial (HACK → Script Kiddie → Idle-Loop (perSec≥2) → Root bei 1M), optional, Bestandsspieler-Erkennung |
+| **🎯 Hack-Minigame** | Alle 10 Hacks Timing-Bar (35-65% Sweet Spot → 3×), Auto-Miss nach 3s, WebAudio + Haptik |
+| **🔊 Sound** | WebAudio Synth (Click/Buy/Prestige/Minigame), Toggle in Optionen, `AudioContext` resume |
+| **🏆 Achievements** | 10 Erfolge (First Hack, 1K/100K, Netz online, Server-Farm, Upgrader, Root bereit, Root-Zugriff, Sammler, Stammgast), Toast + persist |
+| **📅 Daily Bonus** | Täglich `500×Streak×Multi` (max 7), Streak via `lastClaim`, Claim in Erfolge-Tab |
 | **⚡ Performance** | Fixer Tick (10/s) + `requestAnimationFrame`, Vite-Bundling, kein Framework-Overhead |
 
 ### Generatoren
@@ -264,13 +268,13 @@ Die installierte App läuft ohne Browser-UI, blockiert Text-Manipulation und pr�
 - [x] **v0.4.4** — Balance-Cap: Prestige-Bonus capped at 50%, neue Upgrades (7 Stück)
 - [x] **v0.4.5** — NPC-Leaderboard (20 Positionen, Single-Player Motivations-Hilfe)
 - [x] **v0.5.0** — Polished Beta: Vite 6 + Tauri Desktop, dynamisches Gummiband-Leaderboard (All-Time/Aktuell + Spieler), Username-Pflicht (milchig), Offline 2min-Willkommen, In-Game Popup + Rückkehr, Statistiken→Optionen, Save-Korruptions-Fallback, 4-Step Tutorial, Pages-CI
-- [ ] **v0.6** — Hack-Minigame (Timing/Pattern), Achievements & Daily Rewards
-- [ ] **v0.7** — Sound/Musik + Themes (Light/Dark/Hacker-Green)
-- [ ] **v1.0** — Cloud-Save (optional), Leaderboard
+- [x] **v0.6.0** — P1: Hack-Minigame (alle 10 Hacks Timing-Bar 3×), Sound/Haptik (WebAudio, Options-Toggle), Achievements (10) + Daily (Streak 7, 500×Streak×Multi), Balance bis 100M validiert
+- [ ] **v0.7** — Themes (Light/Dark/Hacker-Green) + erweiterte Musik
+- [ ] **v1.0** — Cloud-Save (optional)
 
 Ideen & Bugs gerne als [Issue](../../issues) eröffnen!
 
-**Stand: v0.5.0** – Polished: Vite/Tauri, dynamische Rangliste mit Dir, 2min-Offline, Username-Pflicht, P0-Save/Tutorial/CI fertig.
+**Stand: v0.6.0** – P1: Minigame, Sound, Achievements/Daily, Balance validiert.
 
 ---
 

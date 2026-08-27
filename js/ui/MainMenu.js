@@ -7,6 +7,7 @@ import { GameConfig } from '../config/GameConfig.js';
 import { Options } from '../core/Options.js';
 import { InstallHandler } from '../core/InstallHandler.js';
 import { haptic } from '../utils/haptics.js';
+import { audio } from '../utils/audio.js';
 
 export class MainMenu {
     /** @param {import('../core/Game.js').Game} game */
@@ -44,9 +45,15 @@ export class MainMenu {
         // Optionen initial in die Checkboxen spiegeln
         document.getElementById('opt-haptics').checked = Options.get('haptics');
         document.getElementById('opt-offline').checked = Options.get('offlineEarnings');
+        document.getElementById('opt-sound').checked = Options.get('sound');
         document.getElementById('opt-haptics').addEventListener('change', (e) => {
             Options.set('haptics', e.target.checked);
             haptic(15);
+        });
+        document.getElementById('opt-sound').addEventListener('change', (e) => {
+            Options.set('sound', e.target.checked);
+            if (e.target.checked) audio.click();
+            haptic(10);
         });
         document.getElementById('opt-offline').addEventListener('change', (e) => {
             Options.set('offlineEarnings', e.target.checked);
@@ -94,7 +101,7 @@ export class MainMenu {
     }
 
     show() {
-        haptic(10);
+        haptic(10); audio.click();
         try { this.game.persist(); } catch {}
         try { this.game.loop.stop(); } catch {}
         this._fromGame = false;

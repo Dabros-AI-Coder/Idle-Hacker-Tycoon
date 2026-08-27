@@ -113,6 +113,11 @@ body {
 /* === HACK SECTION === */
 #hack-section { text-align: center; }
 #hack-target { position: relative; }
+.hack-minigame { margin-top: 12px; background: #0a0e1a; border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+.minigame-bar { position: relative; height: 14px; background: #131a2e; border-radius: 99px; overflow: hidden; border: 1px solid var(--border); }
+.minigame-sweet { position: absolute; left: 35%; width: 30%; height: 100%; background: linear-gradient(90deg, #00ff88, #00cc6a); opacity: 0.9; }
+.minigame-cursor { position: absolute; top: 0; width: 4px; height: 100%; background: #fff; box-shadow: 0 0 6px #fff; left: 0; }
+.minigame-hint { font-size: 0.68rem; color: var(--accent); font-weight: 700; margin-top: 6px; letter-spacing: 0.06em; }
 #btn-hack {
     width: min(160px, 42vw);
     height: min(160px, 42vw);
@@ -823,6 +828,11 @@ body {
 .npc-list li.is-player { background: linear-gradient(90deg, rgba(0,255,136,0.14), rgba(0,255,136,0.03)); border: 1px solid rgba(0,255,136,0.45) !important; border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,136,0.18); }
 .npc-list li.is-player .npc-name { color: var(--accent); }
 .npc-list li.is-player .npc-name::after { content: '  DU'; font-size: 0.62rem; font-weight: 800; color: #0a0e1a; background: var(--accent); border-radius: 99px; padding: 2px 6px; margin-left: 6px; vertical-align: middle; }
+.daily-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.daily-header h3 { font-size: 1rem; font-weight: 800; }
+.daily-header p { font-size: 0.72rem; color: var(--text-dim); }
+.daily-reward { font-size: 1.1rem; font-weight: 800; color: var(--accent); background: #0a0e1a; border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px; }
+.achievements-header h3 { font-size: 0.95rem; margin-bottom: 8px; }
 
 @media (min-width: 600px) {
     #main { padding: 16px; gap: 16px; }

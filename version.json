@@ -1,5 +1,5 @@
 {
-  "version": "0.5.0",
+  "version": "0.6.0",
   "build": 20260827,
-  "notes": "Polished Beta: Vite 6 + Tauri, dynamisches Leaderboard (All-Time/Aktuell + Spieler), Username-Pflicht, Offline 2min, In-Game Popup, P0 Save/Tutorial/CI"
+  "notes": "P1: Sound/Haptik, Achievements + Daily, Hack-Minigame (Timing), Balance validiert"
 }
