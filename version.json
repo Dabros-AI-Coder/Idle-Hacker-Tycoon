@@ -1,5 +1,5 @@
 {
-  "version": "0.7.1",
+  "version": "0.10.1",
   "build": 20260827,
-  "notes": "Terminal-Redesign: JetBrains Mono, CRT-Scanline-Overlay, Klammer-Buttons, Zahlen-Glitch-Effekt, Terminal-Fenster-Ecken auf allen 4 Themes"
+  "notes": "Merge v0.7.1 (Terminal-Redesign: JetBrains Mono, CRT, Glitch) + v0.10.0 (17 Gen / 29 Upg / CPU-Chip-Shop / 50 Meilensteine / wachsende Prestige-Schwelle)"
 }

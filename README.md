@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Polished-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.7.1-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-0.10.1-00ff88?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
   <img src="https://img.shields.io/badge/Stack-Vite_Tauri-ffcc00?style=for-the-badge" alt="Vite Tauri" />
 </p>
@@ -37,10 +37,11 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | **🎮 Hauptmenü** | *Spielen / Optionen / Beenden* — Spiel startet erst bei „Spielen“; In-Game `☰` Popup (Hauptmenü / Optionen / Beenden) mit Rückkehr zum Spiel; Optionen jetzt mit Subtabs *Optionen ↔ Statistiken* |
 | **👤 Hacker-Name** | Beim ersten Start Pflicht-Popup „Wie sollen wir dich nennen?“ (milchiger Blur, Bestätigen/Enter) über In-Game, 2–16 Zeichen, änderbar in Optionen |
 | **👆 Aktives Hacken** | Tap/Hold auf den Hack-Button, Float-Animation, Haptik (`navigator.vibrate`) |
-| **🤖 8 Generatoren** | Script Kiddie → Botnet → Server Farm → Quantum Rig → KI-Schwarm → Darknet-Markt → Satelliten-Uplink → Neural Overmind |
-| **⬆️ 18 Upgrades** | Klick- & Generator-Boosts, Global-Boosts, Unlock-Ketten; Balance-capped Prestige-Multiplikator |
+| **🤖 17 Generatoren** | Script Kiddie → Proxy-Kette → Botnet → Krypto-Miner → Server Farm → DDoS-Rig → Quantum Rig → Zero-Day-Labor → KI-Schwarm → Deepfake-Studio → Darknet-Markt → Börsen-Coup → Satelliten-Uplink → Quanten-Rechenzentrum → Neural Overmind → Dyson-Botnetz → Singularitäts-Kern |
+| **⬆️ 28 Upgrades** | Klick- & Generator-Boosts (1 pro Generator), 5 globale Übertaktungsstufen, Unlock-Ketten; Balance-capped Prestige-Multiplikator |
 | **📈 Level-System** | 9 Ränge von *Script Kiddie* bis *Singularity* (bis 1B total) mit Progress-Bar |
 | **👑 Prestige (Root-Zugriff)** | Ab 1M `totalEarned` resetten → 1 Punkt pro 1M, **+5 % Global-Multiplikator pro Punkt** (capped at 50%), permanent |
+| **💾 CPU-Chip-Shop** | Zweitwährung aus Prestige, 6 leveled Permanent-Upgrades (Root-Tab), überlebt normalen Reset — löst das "Prestige verliert nach 2-3 Runs an Spannung"-Problem des reinen Auto-Multiplikators |
 | **👻 Fiktive Rangliste** | 20 Plätze (19 NPCs + Du, `DU`-Badge), Gummiband: NPCs skalieren mit `+32% Prestige` + `12% Bits/Prestige` + `18% totalEarned` (All-Time) bzw. `22% aktuell`, 2 Tabs *All-Time / Aktuell*, Top-3 Gold/Silber/Bronze |
 | **📊 Statistiken** | Aus `Stats`-Tab in Hauptmenü → Optionen → Statistiken verschoben; letzter In-Game-Tab ist jetzt reine Rangliste |
 | **📱 PWA** | Installierbar (`manifest.json`, Icons), Standalone-Erkennung, Browser-Schutz (kein Rechtsklick/Markieren/Kopieren in der App) |
@@ -56,7 +57,7 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | **🎓 Onboarding** | 4-stufiges Tutorial (HACK → Script Kiddie → Idle-Loop (perSec≥2) → Root bei 1M), optional, Bestandsspieler-Erkennung |
 | **🎯 Hack-Minigame** | Alle 10 Hacks Timing-Bar (35-65% Sweet Spot → 3×), Auto-Miss nach 3s, WebAudio + Haptik |
 | **🔊 Sound** | WebAudio Synth (Click/Buy/Prestige/Minigame), Toggle in Optionen, `AudioContext` resume |
-| **🏆 Achievements** | 10 Erfolge (First Hack, 1K/100K, Netz online, Server-Farm, Upgrader, Root bereit, Root-Zugriff, Sammler, Stammgast), Toast + persist |
+| **🏆 Achievements** | 11 Erfolge (First Hack, 1K/100K, Netz online, Server-Farm, Upgrader, Root bereit, Root-Zugriff, Sammler, Netzwerk komplett, Stammgast), Toast + persist |
 | **📅 Daily Bonus** | Täglich `500×Streak×Multi` (max 7), Streak via `lastClaim`, Claim in Erfolge-Tab |
 | **🎨 Themes** | Auto (System) + Dark/Light/Hacker-Green, `data-theme`, `prefers-color-scheme`, Toggle in Optionen |
 | **🖥️ Terminal-Design** | JetBrains Mono durchgängig, CRT-Scanline-Overlay mit dezentem Flicker (respektiert `prefers-reduced-motion`), Klammer-Buttons `[ ]`, RGB-Split-Glitch bei Zahlen-Sprüngen (Klick, Level-Up), Terminal-Fenster-Ecken auf Karten — jedes Theme mit eigenem Sekundär-Akzent (`--accent2`) |
@@ -70,13 +71,22 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | Icon | Name | Basis /sec | Basis-Kosten | Skalierung |
 |---|---|---:|---:|---|
 | 💻 | Script Kiddie | 0.5 | 15 | ×1.15 |
+| 🧦 | Proxy-Kette | 1.2 | 45 | ×1.14 |
 | 🤖 | Botnet | 4 | 100 | ×1.14 |
+| 🪙 | Krypto-Miner | 12 | 350 | ×1.14 |
 | 🖥️ | Server Farm | 30 | 1.100 | ×1.13 |
+| ⚡ | DDoS-Rig | 90 | 4.000 | ×1.14 |
 | ⚛️ | Quantum Rig | 220 | 12.000 | ×1.14 |
+| 🧪 | Zero-Day-Labor | 650 | 45.000 | ×1.15 |
 | 🧠 | KI-Schwarm | 1.600 | 130.000 | ×1.15 |
+| 🎭 | Deepfake-Studio | 4.800 | 500.000 | ×1.15 |
 | 🕸️ | Darknet-Markt | 12.000 | 1,5M | ×1.15 |
+| 🏦 | Börsen-Coup | 42.000 | 6,5M | ×1.14 |
 | 🛰️ | Satelliten-Uplink | 95.000 | 20M | ×1.14 |
+| 🏢 | Quanten-Rechenzentrum | 340.000 | 85M | ×1.15 |
 | 🌌 | Neural Overmind | 900.000 | 300M | ×1.15 |
+| 🌞 | Dyson-Botnetz | 3,2M | 1,3B | ×1.15 |
+| ♾️ | Singularitäts-Kern | 14M | 6B | ×1.16 |
 
 ### Upgrades
 
@@ -93,13 +103,18 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | 🌋 | Übertaktung II | Alle ×2 | 2,5M |
 | 🕶️ | Markt-Bot | Darknet-Märkte +150% | 4M |
 | 📡 | Uplink-Turbo | Satelliten-Uplinks +150% | 40M |
+| ☄️ | Übertaktung III | Alle ×3 | 100M |
+| 🌠 | Übertaktung IV | Alle ×2 | 2B |
+| 🪐 | Übertaktung V | Alle ×2,5 | 20B |
+
+*(1 dediziertes Output-Upgrade pro Generator, hier nicht vollständig gelistet — siehe `GameConfig.js`.)*
 
 ### Prestige — Root-Zugriff
 
 | Mechanik | Wert |
 |---|---|
-| Freischaltung | ab **1.000.000** total verdienten Bits |
-| Punkte | 1 Punkt pro 1M (anteilig als Fortschritt sichtbar) |
+| Freischaltung | ab **1.000.000** total verdienten Bits, wächst danach ×1.3 pro Prestige (sonst wäre die Schwelle mit wachsenden permanenten Boni in Sekunden wieder erreicht) |
+| Punkte | 1 Punkt pro 1M `totalEarned` (anteilig als Fortschritt sichtbar) — skaliert automatisch mit, da die Schwelle wächst |
 | Effekt | **+5 %** auf Klick + alle Generatoren, pro Punkt (capped 50%) |
 | Reset | Bits, Generatoren & Upgrades — Punkte bleiben permanent |
 
@@ -110,8 +125,30 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | 1 | 🌱 Wiedergeboren | Start nach jedem Reset mit **500 Bits** |
 | 3 | 🛡️ Netz-Veteran | Start mit **25.000 Bits** |
 | 5 | 👑 Legende des Netzes | **×2** auf Klick & alle Server — permanent |
+| 10 | 🕵️ Schatten-Legion | Start mit **50.000 Bits** |
+| 15 | ⚙️ System-Architekt | **×1.15** auf Klick & alle Server — permanent |
+| 20 | 🧿 Unsichtbarer Admin | Start mit **150.000 Bits** |
+| 25 | 🛠️ Root-Baumeister | **×1.15** auf Klick & alle Server — permanent |
+| 30 | 🌐 Netzwerk-Souverän | Start mit **400.000 Bits** |
+| 35 | 🚀 Exabyte-Architekt | **×1.2** auf Klick & alle Server — permanent |
+| 40 | 🧬 Digitale Gottheit | Start mit **1.000.000 Bits** |
+| 45 | 🕳️ Void-Operator | **×1.2** auf Klick & alle Server — permanent |
+| 50 | 👁️ Allsehendes Auge | **×1.3** auf Klick & alle Server — permanent |
 
-> Zielkurven (headless validiert via `js/utils/simulate.js`, 5 Klicks/s, greedy): erstes Prestige ~16 min, Darknet-Markt ~36 min, Satelliten-Uplink ~50 min, Neural Overmind ~71 min — mit Prestige-Multiplikatoren entsprechend schneller.
+> Zielkurven (headless validiert via `js/utils/simulate.js`, 5 Klicks/s, greedy): erstes Prestige ~14 min, Satelliten-Uplink ~51 min, Neural Overmind ~75 min, Singularitäts-Kern ~88 min — mit Prestige-Multiplikatoren entsprechend schneller. Mehrfach-Prestige-Kadenz (`js/utils/simulateMultiPrestige.js`, gleicher greedy Bot): Prestige 1→5 dauert 14 → 11 → 9 → 5 → 3 Minuten (spürbar gestaffelt statt trivial), danach kollabiert die Kadenz unter einem theoretisch perfekten Dauer-Optimal-Bot auf Sekunden-Bruchteile — ein bekanntes Idle-Game-Artefakt unbegrenzter Reinvestition pro Tick, das reale Spieler (keine 10 Käufe/Sekunde) praktisch nicht erreichen.
+
+#### 💾 CPU-Chip-Shop (Zweitwährung, überlebt Prestige)
+
+Der Multiplikator aus Root-Keys ist bei ×1.5 gedeckelt — sonst würde Root-Zugriff nach wenigen Durchläufen jede Spannung verlieren. Deshalb gibt's zusätzlich **CPU-Chips**: bei jedem Root-Zugriff im gleichen Umfang wie Root-Keys gutgeschrieben, aber **ausgegeben** statt automatisch verrechnet — im permanenten Shop im Root-Tab. Käufe bleiben über jeden normalen Reset hinweg erhalten (nur ein kompletter Save-Wipe löscht sie), Kosten steigen pro Stufe geometrisch (`baseCost × costMultiplier^level`).
+
+| Icon | Name | Effekt/Stufe | Max-Level | Basiskosten |
+|---|---|---|---:|---:|
+| 🔑 | Root-Protokoll | +5% alle Server | 30 | 2 |
+| 🧠 | Neuronale Beschleunigung | +10% Klick-Power | 20 | 1 |
+| 📈 | Effiziente Extraktion | +10% Root-Keys & Chips pro Prestige | 15 | 5 |
+| 💼 | Notfall-Fonds | +50.000 Start-Bits nach Reset | 10 | 3 |
+| 🌙 | Autonomie-Kern | +25% Offline-Cap | 8 | 4 |
+| 💰 | Schwarzmarkt-Kontakte | Generator-Kosten -2% (max. -50%) | 10 | 6 |
 
 ---
 
@@ -169,7 +206,7 @@ Idle-Hacker-Tycoon/
 └── js/
     ├── main.js             # Entry, --vh Fix, Standalone/Updater, Leaderboard-Tabs
     ├── config/
-    │   └── GameConfig.js   # ← Einzige Stelle für Balancing (v0.7.1)
+    │   └── GameConfig.js   # ← Einzige Stelle für Balancing (v0.10.1)
     ├── core/
     │   ├── Game.js         # Facade: Systeme, Loop, Save, Offline 2min/pending, Gummiband, Achievements/Daily
     │   ├── GameLoop.js     # fixer Tick via setInterval + rAF
@@ -282,11 +319,14 @@ Die installierte App läuft ohne Browser-UI, blockiert Text-Manipulation und pr�
 - [x] **v0.6.0** — P1: Hack-Minigame (alle 10 Hacks Timing-Bar 3×), Sound/Haptik (WebAudio, Options-Toggle), Achievements (10) + Daily (Streak 7), Balance bis 100M validiert
 - [x] **v0.7.0** — P2: Themes (Auto/Dark/Light/Hacker), Bulk-Kauf x10/x100/Max, Impressum/Datenschutz, Tauri Auto-Updater (latest.json)
 - [x] **v0.7.1** — Terminal-Redesign: JetBrains Mono, CRT-Scanline-Overlay mit Flicker, Klammer-Buttons `[ ]`, RGB-Split-Glitch bei Zahlen-Sprüngen, Terminal-Fenster-Ecken auf Karten — durchgängig über alle 4 Themes, je mit eigenem Sekundär-Akzent
+- [x] **v0.8.0** — Längere Progression: 9 neue Generatoren (8→17), 11 neue Upgrades (Ø 1 pro neuem Generator + Übertaktung IV/V), Achievement „Netzwerk komplett“
+- [x] **v0.9.0** — CPU-Chip-Shop: Prestige-Zweitwährung mit 6 leveled Permanent-Upgrades, überlebt normale Resets — hält Root-Zugriff auch nach vielen Durchläufen spannend
+- [x] **v0.10.0** — 9 neue Prestige-Meilensteine (bis Prestige 50), Prestige-Schwelle wächst ×1.3/Prestige (löst triviale Wiederholungs-Prestiges), Bugfix: Meilenstein-Multiplikator wirkte bisher nicht auf Klicks
 - [ ] **v1.0** — Cloud-Save (optional)
 
 Ideen & Bugs gerne als [Issue](../../issues) eröffnen!
 
-**Stand: v0.7.1** – Terminal-Redesign (CRT-Look, Monospace, Glitch-Effekte).
+**Stand: v0.10.1** – Terminal-Redesign + 17 Generatoren/29 Upgrades/CPU-Chip-Shop/50 Prestige-Meilensteine (v0.7.1+v0.10.0 Merge).
 
 ---
 

@@ -3,7 +3,7 @@
  * Modular: jede Balance-Änderung nur hier.
  */
 export const GameConfig = Object.freeze({
-    version: '0.7.1',
+    version: '0.10.1',
     saveKey: 'idle_hacker_tycoon_v02',
     // Version des Save-Schemas (unabhängig vom localStorage-Key).
     // Bei Schema-Änderungen: hier erhöhen + Migration in Game.MIGRATIONS ergänzen.
@@ -18,9 +18,13 @@ export const GameConfig = Object.freeze({
     baseClickValue: 1,
 
     prestige: {
-        // Ab 1M totalEarned kann prestiget werden
+        // Ab 1M totalEarned kann prestiget werden (Basiswert bei totalPrestiges=0)
         threshold: 1_000_000,
-        // 1 Punkt pro 1M (aufgerundet via gainDivisor)
+        // Schwelle wächst pro Prestige: threshold * thresholdGrowth^totalPrestiges,
+        // sonst wäre sie mit wachsenden permanenten Boni in Sekunden erreichbar.
+        thresholdGrowth: 1.3,
+        // 1 Punkt pro 1M (aufgerundet via gainDivisor) — bleibt fix, Gain wächst
+        // automatisch mit, weil eine höhere Schwelle mehr totalEarned verlangt.
         gainDivisor: 1_000_000,
         // +10% global auf Klick + Generatoren pro Punkt
         multiplierPerPoint: 0.05,
@@ -30,6 +34,15 @@ export const GameConfig = Object.freeze({
             { prestiges: 1, icon: '🌱', name: 'Wiedergeboren', description: 'Nach jedem Root-Zugriff startest du mit 500 Bits.', effect: { type: 'start_bits', value: 500 } },
             { prestiges: 3, icon: '🛡️', name: 'Netz-Veteran', description: 'Start mit 25.000 Bits nach jedem Root-Zugriff.', effect: { type: 'start_bits', value: 25_000 } },
             { prestiges: 5, icon: '👑', name: 'Legende des Netzes', description: '×2 auf Klick & alle Server — permanent.', effect: { type: 'global_mult', value: 2 } },
+            { prestiges: 10, icon: '🕵️', name: 'Schatten-Legion', description: 'Start mit 50.000 Bits nach jedem Root-Zugriff.', effect: { type: 'start_bits', value: 50_000 } },
+            { prestiges: 15, icon: '⚙️', name: 'System-Architekt', description: '×1.15 auf Klick & alle Server — permanent.', effect: { type: 'global_mult', value: 1.15 } },
+            { prestiges: 20, icon: '🧿', name: 'Unsichtbarer Admin', description: 'Start mit 150.000 Bits nach jedem Root-Zugriff.', effect: { type: 'start_bits', value: 150_000 } },
+            { prestiges: 25, icon: '🛠️', name: 'Root-Baumeister', description: '×1.15 auf Klick & alle Server — permanent.', effect: { type: 'global_mult', value: 1.15 } },
+            { prestiges: 30, icon: '🌐', name: 'Netzwerk-Souverän', description: 'Start mit 400.000 Bits nach jedem Root-Zugriff.', effect: { type: 'start_bits', value: 400_000 } },
+            { prestiges: 35, icon: '🚀', name: 'Exabyte-Architekt', description: '×1.2 auf Klick & alle Server — permanent.', effect: { type: 'global_mult', value: 1.2 } },
+            { prestiges: 40, icon: '🧬', name: 'Digitale Gottheit', description: 'Start mit 1.000.000 Bits nach jedem Root-Zugriff.', effect: { type: 'start_bits', value: 1_000_000 } },
+            { prestiges: 45, icon: '🕳️', name: 'Void-Operator', description: '×1.2 auf Klick & alle Server — permanent.', effect: { type: 'global_mult', value: 1.2 } },
+            { prestiges: 50, icon: '👁️', name: 'Allsehendes Auge', description: '×1.3 auf Klick & alle Server — permanent.', effect: { type: 'global_mult', value: 1.3 } },
         ],
     },
 
@@ -44,6 +57,15 @@ export const GameConfig = Object.freeze({
             basePerSec: 0.5,
         },
         {
+            id: 'proxy_chain',
+            name: 'Proxy-Kette',
+            icon: '🧦',
+            description: 'Verschleiert deine Spur durch Ketten von Proxies',
+            baseCost: 45,
+            costMultiplier: 1.14,
+            basePerSec: 1.2,
+        },
+        {
             id: 'botnet',
             name: 'Botnet',
             icon: '🤖',
@@ -51,6 +73,15 @@ export const GameConfig = Object.freeze({
             baseCost: 100,
             costMultiplier: 1.14,
             basePerSec: 4,
+        },
+        {
+            id: 'crypto_miner',
+            name: 'Krypto-Miner',
+            icon: '🪙',
+            description: 'Schürft nebenbei Kryptowährung',
+            baseCost: 350,
+            costMultiplier: 1.14,
+            basePerSec: 12,
         },
         {
             id: 'server_farm',
@@ -62,6 +93,15 @@ export const GameConfig = Object.freeze({
             basePerSec: 30,
         },
         {
+            id: 'ddos_rig',
+            name: 'DDoS-Rig',
+            icon: '⚡',
+            description: 'Mietbare Angriffs-Infrastruktur',
+            baseCost: 4000,
+            costMultiplier: 1.14,
+            basePerSec: 90,
+        },
+        {
             id: 'quantum_rig',
             name: 'Quantum Rig',
             icon: '⚛️',
@@ -69,6 +109,15 @@ export const GameConfig = Object.freeze({
             baseCost: 12000,
             costMultiplier: 1.14,
             basePerSec: 220,
+        },
+        {
+            id: 'zero_day_lab',
+            name: 'Zero-Day-Labor',
+            icon: '🧪',
+            description: 'Entwickelt exklusive Zero-Day-Exploits',
+            baseCost: 45000,
+            costMultiplier: 1.15,
+            basePerSec: 650,
         },
         {
             id: 'ai_swarm',
@@ -80,6 +129,15 @@ export const GameConfig = Object.freeze({
             basePerSec: 1600,
         },
         {
+            id: 'deepfake_studio',
+            name: 'Deepfake-Studio',
+            icon: '🎭',
+            description: 'Automatisierte Social-Engineering-Kampagnen',
+            baseCost: 500000,
+            costMultiplier: 1.15,
+            basePerSec: 4800,
+        },
+        {
             id: 'dark_market',
             name: 'Darknet-Markt',
             icon: '🕸️',
@@ -87,6 +145,15 @@ export const GameConfig = Object.freeze({
             baseCost: 1500000,
             costMultiplier: 1.15,
             basePerSec: 12000,
+        },
+        {
+            id: 'exchange_heist',
+            name: 'Börsen-Coup',
+            icon: '🏦',
+            description: 'Unterwandert Börsen-Infrastruktur',
+            baseCost: 6500000,
+            costMultiplier: 1.14,
+            basePerSec: 42000,
         },
         {
             id: 'satellite_uplink',
@@ -98,6 +165,15 @@ export const GameConfig = Object.freeze({
             basePerSec: 95000,
         },
         {
+            id: 'quantum_datacenter',
+            name: 'Quanten-Rechenzentrum',
+            icon: '🏢',
+            description: 'Verteiltes Quanten-Rechenzentrum',
+            baseCost: 85000000,
+            costMultiplier: 1.15,
+            basePerSec: 340000,
+        },
+        {
             id: 'neural_overmind',
             name: 'Neural Overmind',
             icon: '🌌',
@@ -105,6 +181,24 @@ export const GameConfig = Object.freeze({
             baseCost: 300000000,
             costMultiplier: 1.15,
             basePerSec: 900000,
+        },
+        {
+            id: 'dyson_botnet',
+            name: 'Dyson-Botnetz',
+            icon: '🌞',
+            description: 'Sammelt Sonnenenergie für globale Botnetze',
+            baseCost: 1300000000,
+            costMultiplier: 1.15,
+            basePerSec: 3200000,
+        },
+        {
+            id: 'singularity_core',
+            name: 'Singularitäts-Kern',
+            icon: '♾️',
+            description: 'Post-menschliche Rechenleistung ohne Grenzen',
+            baseCost: 6000000000,
+            costMultiplier: 1.16,
+            basePerSec: 14000000,
         },
     ],
 
@@ -262,6 +356,122 @@ export const GameConfig = Object.freeze({
             effect: { type: 'offline_cap_mult', value: 2 },
             requires: null,
         },
+        {
+            id: 'proxy_upgrade',
+            name: 'Proxy-Ketten 2.0',
+            icon: '🧦',
+            description: 'Proxy-Ketten +100% Output',
+            cost: 900,
+            effect: { type: 'generator_mult', target: 'proxy_chain', value: 2 },
+            requires: null,
+        },
+        {
+            id: 'mining_pool',
+            name: 'Mining-Pool',
+            icon: '🪙',
+            description: 'Krypto-Miner +100% Output',
+            cost: 7000,
+            effect: { type: 'generator_mult', target: 'crypto_miner', value: 2 },
+            requires: null,
+        },
+        {
+            id: 'ddos_amplification',
+            name: 'DDoS-Verstärkung',
+            icon: '⚡',
+            description: 'DDoS-Rigs +100% Output',
+            cost: 80000,
+            effect: { type: 'generator_mult', target: 'ddos_rig', value: 2 },
+            requires: null,
+        },
+        {
+            id: 'exploit_database',
+            name: 'Exploit-Datenbank',
+            icon: '🧪',
+            description: 'Zero-Day-Labore +150% Output',
+            cost: 900000,
+            effect: { type: 'generator_mult', target: 'zero_day_lab', value: 2.5 },
+            requires: null,
+        },
+        {
+            id: 'synthetic_voices',
+            name: 'Synthetische Stimmen',
+            icon: '🎭',
+            description: 'Deepfake-Studios +150% Output',
+            cost: 10000000,
+            effect: { type: 'generator_mult', target: 'deepfake_studio', value: 2.5 },
+            requires: null,
+        },
+        {
+            id: 'insider_access',
+            name: 'Insider-Zugang',
+            icon: '🏦',
+            description: 'Börsen-Coups +150% Output',
+            cost: 130000000,
+            effect: { type: 'generator_mult', target: 'exchange_heist', value: 2.5 },
+            requires: null,
+        },
+        {
+            id: 'qubit_array',
+            name: 'Qubit-Array',
+            icon: '🏢',
+            description: 'Quanten-Rechenzentren +200% Output',
+            cost: 1700000000,
+            effect: { type: 'generator_mult', target: 'quantum_datacenter', value: 3 },
+            requires: null,
+        },
+        {
+            id: 'solar_collector',
+            name: 'Solar-Kollektor',
+            icon: '🌞',
+            description: 'Dyson-Botnetze +200% Output',
+            cost: 26000000000,
+            effect: { type: 'generator_mult', target: 'dyson_botnet', value: 3 },
+            requires: null,
+        },
+        {
+            id: 'singularity_matrix',
+            name: 'Singularitäts-Matrix',
+            icon: '♾️',
+            description: 'Singularitäts-Kerne +200% Output',
+            cost: 120000000000,
+            effect: { type: 'generator_mult', target: 'singularity_core', value: 3 },
+            requires: null,
+        },
+        {
+            id: 'overclock_iv',
+            name: 'Übertaktung IV',
+            icon: '🌠',
+            description: 'Alle Server +100%',
+            cost: 2000000000,
+            effect: { type: 'global_mult', value: 2 },
+            requires: 'overclock_iii',
+        },
+        {
+            id: 'overclock_v',
+            name: 'Übertaktung V',
+            icon: '🪐',
+            description: 'Alle Server +150%',
+            cost: 20000000000,
+            effect: { type: 'global_mult', value: 2.5 },
+            requires: 'overclock_iv',
+        },
+    ],
+
+    /**
+     * Prestige-Shop — permanenter Zweitwährungs-Shop (CPU-Chips).
+     * Käufe überleben normale Prestige-Resets (nur Save-Wipe löscht sie).
+     * effect.type: 'global_mult_add' | 'click_mult_add' | 'cost_reduction_add'
+     *              (laufen additiv als Bonus in Automation/ClickSystem)
+     *            | 'prestige_gain_mult' (erhöht Root-Keys+Chips-Gewinn pro Prestige)
+     *            | 'start_bits_add' | 'offline_cap_add' (on-demand aus levels berechnet)
+     */
+    prestigeShop: [
+        { id: 'sp_global', name: 'Root-Protokoll', icon: '🔑', description: '+5% auf alle Server pro Stufe', baseCost: 2, costMultiplier: 1.6, maxLevel: 30, effect: { type: 'global_mult_add', perLevel: 0.05 } },
+        { id: 'sp_click', name: 'Neuronale Beschleunigung', icon: '🧠', description: '+10% Klick-Power pro Stufe', baseCost: 1, costMultiplier: 1.5, maxLevel: 20, effect: { type: 'click_mult_add', perLevel: 0.10 } },
+        { id: 'sp_gain', name: 'Effiziente Extraktion', icon: '📈', description: '+10% Root-Keys & CPU-Chips pro Prestige, pro Stufe', baseCost: 5, costMultiplier: 1.8, maxLevel: 15, effect: { type: 'prestige_gain_mult', perLevel: 0.10 } },
+        { id: 'sp_start', name: 'Notfall-Fonds', icon: '💼', description: '+50.000 Start-Bits nach Reset, pro Stufe', baseCost: 3, costMultiplier: 2.0, maxLevel: 10, effect: { type: 'start_bits_add', perLevel: 50000 } },
+        { id: 'sp_offline', name: 'Autonomie-Kern', icon: '🌙', description: '+25% Offline-Cap pro Stufe', baseCost: 4, costMultiplier: 1.7, maxLevel: 8, effect: { type: 'offline_cap_add', perLevel: 0.25 } },
+        { id: 'sp_cost', name: 'Schwarzmarkt-Kontakte', icon: '💰', description: 'Generator-Kosten -2% pro Stufe (max. -50%)', baseCost: 6, costMultiplier: 2.0, maxLevel: 10, effect: { type: 'cost_reduction_add', perLevel: 0.02 } },
     ],
 
     levelThresholds: [0, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000],
@@ -272,5 +482,8 @@ export const GameConfig = Object.freeze({
     },
     getUpgrade(id) {
         return this.upgrades.find(u => u.id === id) ?? null;
+    },
+    getPrestigeShopItem(id) {
+        return this.prestigeShop.find(i => i.id === id) ?? null;
     },
 });

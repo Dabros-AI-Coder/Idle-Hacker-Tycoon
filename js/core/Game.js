@@ -11,6 +11,7 @@ import { ClickSystem } from '../systems/ClickSystem.js';
 import { AutomationSystem } from '../systems/AutomationSystem.js';
 import { UpgradeSystem } from '../systems/UpgradeSystem.js';
 import { PrestigeSystem } from '../systems/PrestigeSystem.js';
+import { PrestigeShopSystem } from '../systems/PrestigeShopSystem.js';
 import { AchievementSystem } from '../systems/AchievementSystem.js';
 import { DailyRewardSystem } from '../systems/DailyRewardSystem.js';
 import { Options } from './Options.js';
@@ -31,6 +32,7 @@ export class Game {
         this.automation = new AutomationSystem(this.bus, this.economy);
         this.upgrades = new UpgradeSystem(this.bus, this.economy, this.automation);
         this.prestige = new PrestigeSystem(this.bus, this.economy);
+        this.prestigeShop = new PrestigeShopSystem(this.bus, this.prestige);
         this.achievements = new AchievementSystem(this.bus, this);
         this.daily = new DailyRewardSystem(this.bus, this);
 
@@ -138,6 +140,7 @@ export class Game {
         try { this.automation.load(data.automation); } catch (e) { console.warn('[Game] automation load failed', e); }
         try { this.upgrades.load(data.upgrades); } catch (e) { console.warn('[Game] upgrades load failed', e); }
         try { this.prestige.load(data.prestige); } catch (e) { console.warn('[Game] prestige load failed', e); }
+        try { this.prestigeShop.load(data.prestigeShop); } catch (e) { console.warn('[Game] prestigeShop load failed', e); }
         try { this.achievements.load(data.achievements); } catch (e) { console.warn('[Game] achievements load failed', e); }
         try { this.daily.load(data.daily); } catch (e) { console.warn('[Game] daily load failed', e); }
         this.playtimeSec = Number.isFinite(data.playtimeSec) ? data.playtimeSec : 0;
@@ -173,7 +176,7 @@ export class Game {
      */
     _grantOffline(elapsedSec, isInit) {
         if (!Options.get('offlineEarnings')) return;
-        const maxHours = GameConfig.offlineCapHours * this.offlineCapMultiplier;
+        const maxHours = GameConfig.offlineCapHours * (this.offlineCapMultiplier + this.prestigeShop.getOfflineCapBonus());
         const capped = Math.min(elapsedSec, maxHours * 3600);
         const threshold = isInit ? 120 : GameConfig.offlineCatchUpMinSec;
         if (capped < threshold) return;
@@ -244,6 +247,7 @@ export class Game {
             automation: this.automation.serialize(),
             upgrades: this.upgrades.serialize(),
             prestige: this.prestige.serialize(),
+            prestigeShop: this.prestigeShop.serialize(),
             achievements: this.achievements.serialize(),
             daily: this.daily.serialize(),
             playtimeSec: this.playtimeSec,
@@ -286,6 +290,7 @@ export class Game {
         this.automation.reset();
         this.upgrades.reset();
         this.prestige.resetHard();
+        this.prestigeShop.resetHard();
         this.achievements.reset();
         this.daily.reset();
         this._offlineEarning = 0;
@@ -307,9 +312,10 @@ export class Game {
     doPrestige() {
         const result = this.prestige.commit();
         if (!result) return false;
-        // Reset spielrelevante Systeme, aber nicht prestige selbst.
-        // Start-Bits aus aktiven Meilensteinen (basieren auf NEUEM Prestige-Stand).
-        this.economy.reset(this.prestige.getStartBonus());
+        // Reset spielrelevante Systeme, aber nicht prestige/prestigeShop selbst
+        // (der Prestige-Shop überlebt normale Resets bewusst).
+        // Start-Bits aus aktiven Meilensteinen + Prestige-Shop (NEUER Prestige-Stand).
+        this.economy.reset(this.prestige.getStartBonus() + this.prestigeShop.getStartBitsBonus());
         this.automation.reset();
         this.upgrades.reset();
         // Click/Automation hören prestige:changed bereits und setzen Multiplier
@@ -326,6 +332,7 @@ export class Game {
         this.automation.reset();
         this.upgrades.reset();
         this.prestige.resetHard();
+        this.prestigeShop.resetHard();
         this.achievements.reset();
         this.daily.reset();
         this.playtimeSec = 0;

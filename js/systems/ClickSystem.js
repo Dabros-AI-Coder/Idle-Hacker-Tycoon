@@ -13,6 +13,10 @@ export class ClickSystem {
         this.economy = economy;
         this.clickMultiplier = 1;
         this.prestigeMultiplier = 1;
+        /** Produkt aller 'global_mult'-Prestige-Meilensteine (z.B. "Legende des Netzes" ×2). */
+        this.milestoneMultiplier = 1;
+        /** Additiver Bonus aus Prestige-Shop 'click_mult_add' — überlebt Prestige-Reset. */
+        this.shopClickBonus = 0;
 
         bus.on('upgrade:applied', ({ effect }) => {
             if (effect.type === 'click_mult') {
@@ -20,17 +24,25 @@ export class ClickSystem {
                 this.bus.emit('click:changed', { value: this.getClickValue() });
             }
         });
-        bus.on('prestige:changed', ({ multiplier }) => {
+        bus.on('prestigeshop:applied', ({ effect, delta }) => {
+            if (effect.type === 'click_mult_add') {
+                this.shopClickBonus += delta;
+                this.bus.emit('click:changed', { value: this.getClickValue() });
+            }
+        });
+        bus.on('prestige:changed', ({ multiplier, milestoneMultiplier }) => {
             this.prestigeMultiplier = multiplier || 1;
+            this.milestoneMultiplier = milestoneMultiplier || 1;
             this.bus.emit('click:changed', { value: this.getClickValue() });
         });
-        bus.on('prestige:committed', ({ multiplier }) => {
+        bus.on('prestige:committed', ({ multiplier, milestoneMultiplier }) => {
             this.prestigeMultiplier = multiplier || 1;
+            this.milestoneMultiplier = milestoneMultiplier || 1;
         });
     }
 
     getClickValue() {
-        return GameConfig.baseClickValue * this.clickMultiplier * this.prestigeMultiplier;
+        return GameConfig.baseClickValue * this.clickMultiplier * this.prestigeMultiplier * this.milestoneMultiplier * (1 + this.shopClickBonus);
     }
 
     hack() {

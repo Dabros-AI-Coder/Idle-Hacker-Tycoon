@@ -21,6 +21,9 @@ export class AutomationSystem {
         this.milestoneMultiplier = 1;
 
         this.costReduction = 1;
+        /** Additive Boni aus Prestige-Shop — überleben Prestige-Reset (siehe reset()). */
+        this.shopGlobalBonus = 0;
+        this.shopCostReductionBonus = 0;
 
         bus.on('upgrade:applied', ({ effect }) => {
             if (effect.type === 'generator_mult') {
@@ -34,43 +37,41 @@ export class AutomationSystem {
                 this.costReduction *= effect.value;
             }
         });
-        bus.on('prestige:changed', ({ multiplier, totalPrestiges }) => {
-            this.prestigeMultiplier = multiplier || 1;
-            if (totalPrestiges !== undefined) {
-                this.milestoneMultiplier = this.calcMilestoneMultiplier(totalPrestiges);
-            }
+        bus.on('prestigeshop:applied', ({ effect, delta }) => {
+            if (effect.type === 'global_mult_add') this.shopGlobalBonus += delta;
+            if (effect.type === 'cost_reduction_add') this.shopCostReductionBonus += delta;
         });
-        bus.on('prestige:committed', ({ multiplier, totalPrestiges }) => {
+        bus.on('prestige:changed', ({ multiplier, milestoneMultiplier }) => {
             this.prestigeMultiplier = multiplier || 1;
-            this.milestoneMultiplier = this.calcMilestoneMultiplier(totalPrestiges || 0);
+            this.milestoneMultiplier = milestoneMultiplier || 1;
+        });
+        bus.on('prestige:committed', ({ multiplier, milestoneMultiplier }) => {
+            this.prestigeMultiplier = multiplier || 1;
+            this.milestoneMultiplier = milestoneMultiplier || 1;
         });
     }
 
-    /** Produkt aller global_mult-Effekte aktivierter Meilensteine */
-    calcMilestoneMultiplier(totalPrestiges) {
-        let mult = 1;
-        for (const m of GameConfig.prestige.milestones) {
-            if (totalPrestiges >= m.prestiges && m.effect.type === 'global_mult') {
-                mult *= m.effect.value;
-            }
-        }
-        return mult;
+    /** Effektiver Kostenmultiplikator inkl. Upgrade- und Prestige-Shop-Kostenreduktion. */
+    _effectiveCostMultiplier(def) {
+        const shopFactor = 1 - Math.min(0.5, this.shopCostReductionBonus);
+        return def.costMultiplier * this.costReduction * shopFactor;
     }
 
     getCost(id) {
         const def = GameConfig.getGenerator(id);
         if (!def) return Infinity;
         const owned = this.owned.get(id) || 0;
-        return Math.floor(def.baseCost * Math.pow(def.costMultiplier * this.costReduction, owned));
+        return Math.floor(def.baseCost * Math.pow(this._effectiveCostMultiplier(def), owned));
     }
 
     getBulkCost(id, amount) {
         const def = GameConfig.getGenerator(id);
         if (!def || amount <= 0) return 0;
         const owned = this.owned.get(id) || 0;
+        const mult = this._effectiveCostMultiplier(def);
         let total = 0;
         for (let i = 0; i < amount; i++) {
-            total += Math.floor(def.baseCost * Math.pow(def.costMultiplier * this.costReduction, owned + i));
+            total += Math.floor(def.baseCost * Math.pow(mult, owned + i));
             if (!Number.isFinite(total) || total > 1e18) break;
         }
         return total;
@@ -80,12 +81,13 @@ export class AutomationSystem {
         const def = GameConfig.getGenerator(id);
         if (!def) return 0;
         const bits = this.economy.bits;
+        const mult = this._effectiveCostMultiplier(def);
         let owned = this.owned.get(id) || 0;
         let total = 0;
         let count = 0;
         // cap at 100 to avoid infinite loop
         while (count < 100) {
-            const cost = Math.floor(def.baseCost * Math.pow(def.costMultiplier * this.costReduction, owned + count));
+            const cost = Math.floor(def.baseCost * Math.pow(mult, owned + count));
             if (total + cost > bits) break;
             total += cost;
             count++;
@@ -126,11 +128,12 @@ export class AutomationSystem {
 
     getTotalPerSec() {
         let total = 0;
+        const shopMult = 1 + this.shopGlobalBonus;
         for (const def of GameConfig.generators) {
             const count = this.owned.get(def.id) || 0;
             if (count === 0) continue;
             const genMult = this.genMultipliers.get(def.id) || 1;
-            total += count * def.basePerSec * genMult * this.globalMultiplier * this.prestigeMultiplier * this.milestoneMultiplier;
+            total += count * def.basePerSec * genMult * this.globalMultiplier * this.prestigeMultiplier * this.milestoneMultiplier * shopMult;
         }
         return total;
     }
@@ -140,7 +143,7 @@ export class AutomationSystem {
         if (!def) return 0;
         const count = this.owned.get(id) || 0;
         const genMult = this.genMultipliers.get(id) || 1;
-        return count * def.basePerSec * genMult * this.globalMultiplier * this.prestigeMultiplier * this.milestoneMultiplier;
+        return count * def.basePerSec * genMult * this.globalMultiplier * this.prestigeMultiplier * this.milestoneMultiplier * (1 + this.shopGlobalBonus);
     }
 
     getOwned(id) { return this.owned.get(id) || 0; }
