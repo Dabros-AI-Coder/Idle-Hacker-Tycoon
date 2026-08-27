@@ -328,6 +328,8 @@ export class Game {
     reset() {
         this.save.clear();
         try { localStorage.removeItem('idle_hacker_tycoon_v01'); } catch {}
+        try { Options.set('username', ''); } catch {}
+        try { localStorage.removeItem('idle_hacker_tutorial_done'); } catch {}
         this.economy.reset();
         this.automation.reset();
         this.upgrades.reset();

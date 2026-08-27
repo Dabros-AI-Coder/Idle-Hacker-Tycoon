@@ -102,6 +102,12 @@ export class MainMenu {
         for (const btn of this.menuSubtabs) {
             btn.addEventListener('click', () => this._switchMenuTab(btn.dataset.menuTab));
         }
+
+        // Nach "Fortschritt löschen" auch Username-Input leeren (Game.reset löscht Options.username)
+        this.game.bus.on('game:reset', () => {
+            if (this.usernameInput) this.usernameInput.value = '';
+            this._setStatus('Fortschritt + Name gelöscht');
+        });
     }
 
     get isVisible() {
