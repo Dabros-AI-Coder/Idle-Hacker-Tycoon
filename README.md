@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Polished-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.12.0-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-0.12.1-00ff88?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
   <img src="https://img.shields.io/badge/Stack-Vite_Tauri-ffcc00?style=for-the-badge" alt="Vite Tauri" />
 </p>
@@ -206,7 +206,7 @@ Idle-Hacker-Tycoon/
 └── js/
     ├── main.js             # Entry, --vh Fix, Standalone/Updater, Leaderboard-Tabs
     ├── config/
-    │   └── GameConfig.js   # ← Einzige Stelle für Balancing (v0.12.0)
+    │   └── GameConfig.js   # ← Einzige Stelle für Balancing (v0.12.1)
     ├── core/
     │   ├── Game.js         # Facade: Systeme, Loop, Save, Offline 2min/pending, Gummiband, Achievements/Daily
     │   ├── GameLoop.js     # fixer Tick via setInterval + rAF
@@ -325,11 +325,12 @@ Die installierte App läuft ohne Browser-UI, blockiert Text-Manipulation und pr�
 - [x] **v0.10.1** — Fix: „Fortschritt löschen“ löscht auch Username + Tutorial-Flag (Theme/Sound bleiben)
 - [x] **v0.11.0** — Kategorien: 4 Generator-Tiers (Einstieg/Mittel/Hoch/Endgame) + 4 Upgrade-Gruppen (Klick/Server/Global/Effizienz) kollabierbar + Filterchips
 - [x] **v0.12.0** — Overlay-Kategorien: 2er-Raster nur Kategorien, Unterpunkte im eigenen Overlay (statt Dropdown/Akkordeon)
+- [x] **v0.12.1** — UI: Netzwerk-Rack (LEDs je Komponente) entfernt, nur noch Gesamt-Knoten im Header
 - [ ] **v1.0** — Cloud-Save (optional)
 
 Ideen & Bugs gerne als [Issue](../../issues) eröffnen!
 
-**Stand: v0.12.0** – Overlay-Kategorien (2er-Raster + Detail-Overlay), 17 Gen/28 Upg.
+**Stand: v0.12.1** – Rack entfernt, nur Gesamt-Knoten, Overlay-Kategorien 2er-Raster.
 
 ---
 

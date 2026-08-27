@@ -735,15 +735,6 @@ export class UIManager {
         const nextAffordable = states.find(s => !s.canAfford);
         const nextHint = nextAffordable ? `${nextAffordable.def.name} in ${Formatter.formatBits(Math.max(0, nextAffordable.cost - bits))} Bits` : 'Alle Server verfügbar';
 
-        const rackHtml = states.map(s => {
-            const active = s.owned > 0;
-            return `<div class="rack-unit ${active ? 'active' : 'inactive'}">
-                <div class="led"></div>
-                <span class="rack-label">${s.def.name.split(' ')[0]}</span>
-                <span class="rack-count">x${s.owned}</span>
-            </div>`;
-        }).join('');
-
         const terminalLine = totalOwned === 0
             ? 'Bereit für ersten Exploit... Tippe HACK um Bits zu sammeln.'
             : totalPerSec === 0
@@ -802,7 +793,6 @@ export class UIManager {
                     <div class="server-kpi"><span>Leistung</span><strong>${kpiTotal} <small>/sec</small></strong></div>
                     <div class="server-kpi"><span>Nächstes Ziel</span><strong style="font-size:0.72rem">${nextHint}</strong></div>
                 </div>
-                <div class="server-rack">${rackHtml}</div>
                 <div class="server-terminal">${terminalLine}</div>
             </div>
             ${bulkHtml}
