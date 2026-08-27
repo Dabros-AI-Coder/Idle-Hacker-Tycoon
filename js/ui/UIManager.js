@@ -637,7 +637,7 @@ export class UIManager {
                 <p><strong>Kontakt:</strong> <a href="https://github.com/Dabros-AI-Coder/Idle-Hacker-Tycoon/issues" target="_blank">GitHub Issues</a></p>
                 <p><strong>Datenschutz:</strong><br>• Spielstand, Optionen, Name, täglicher Streak liegen nur in deinem <code>localStorage</code> (kein Server).<br>• Kein Tracking außer optional Plausible (anonym, kein Cookie, Domain <code>dabros-ai-coder.github.io</code>).<br>• PWA speichert Assets im Cache, Service Worker nur Network-First.</p>
                 <p><strong>Offline:</strong> Berechnet lokal aus <code>savedAt</code> + <code>perSec</code>, 12h Cap, 2min Willkommen-Popup.</p>
-                <p style="color:var(--text-dim); font-size:0.72rem;">Stand 0.6.0 — MIT Lizenz.</p>
+                <p style="color:var(--text-dim); font-size:0.72rem;">Stand ${GameConfig.version} — MIT Lizenz.</p>
                 <div class="modal-actions"><button class="btn-modal primary" data-action="close">Schließen</button></div>
             </div>
         `;

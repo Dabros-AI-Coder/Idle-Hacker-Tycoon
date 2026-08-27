@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Polished-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.7.0-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-0.8.0-00ff88?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
   <img src="https://img.shields.io/badge/Stack-Vite_Tauri-ffcc00?style=for-the-badge" alt="Vite Tauri" />
 </p>
@@ -37,8 +37,8 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | **🎮 Hauptmenü** | *Spielen / Optionen / Beenden* — Spiel startet erst bei „Spielen“; In-Game `☰` Popup (Hauptmenü / Optionen / Beenden) mit Rückkehr zum Spiel; Optionen jetzt mit Subtabs *Optionen ↔ Statistiken* |
 | **👤 Hacker-Name** | Beim ersten Start Pflicht-Popup „Wie sollen wir dich nennen?“ (milchiger Blur, Bestätigen/Enter) über In-Game, 2–16 Zeichen, änderbar in Optionen |
 | **👆 Aktives Hacken** | Tap/Hold auf den Hack-Button, Float-Animation, Haptik (`navigator.vibrate`) |
-| **🤖 8 Generatoren** | Script Kiddie → Botnet → Server Farm → Quantum Rig → KI-Schwarm → Darknet-Markt → Satelliten-Uplink → Neural Overmind |
-| **⬆️ 18 Upgrades** | Klick- & Generator-Boosts, Global-Boosts, Unlock-Ketten; Balance-capped Prestige-Multiplikator |
+| **🤖 17 Generatoren** | Script Kiddie → Proxy-Kette → Botnet → Krypto-Miner → Server Farm → DDoS-Rig → Quantum Rig → Zero-Day-Labor → KI-Schwarm → Deepfake-Studio → Darknet-Markt → Börsen-Coup → Satelliten-Uplink → Quanten-Rechenzentrum → Neural Overmind → Dyson-Botnetz → Singularitäts-Kern |
+| **⬆️ 29 Upgrades** | Klick- & Generator-Boosts (1 pro Generator), 5 globale Übertaktungsstufen, Unlock-Ketten; Balance-capped Prestige-Multiplikator |
 | **📈 Level-System** | 9 Ränge von *Script Kiddie* bis *Singularity* (bis 1B total) mit Progress-Bar |
 | **👑 Prestige (Root-Zugriff)** | Ab 1M `totalEarned` resetten → 1 Punkt pro 1M, **+5 % Global-Multiplikator pro Punkt** (capped at 50%), permanent |
 | **👻 Fiktive Rangliste** | 20 Plätze (19 NPCs + Du, `DU`-Badge), Gummiband: NPCs skalieren mit `+32% Prestige` + `12% Bits/Prestige` + `18% totalEarned` (All-Time) bzw. `22% aktuell`, 2 Tabs *All-Time / Aktuell*, Top-3 Gold/Silber/Bronze |
@@ -56,7 +56,7 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | **🎓 Onboarding** | 4-stufiges Tutorial (HACK → Script Kiddie → Idle-Loop (perSec≥2) → Root bei 1M), optional, Bestandsspieler-Erkennung |
 | **🎯 Hack-Minigame** | Alle 10 Hacks Timing-Bar (35-65% Sweet Spot → 3×), Auto-Miss nach 3s, WebAudio + Haptik |
 | **🔊 Sound** | WebAudio Synth (Click/Buy/Prestige/Minigame), Toggle in Optionen, `AudioContext` resume |
-| **🏆 Achievements** | 10 Erfolge (First Hack, 1K/100K, Netz online, Server-Farm, Upgrader, Root bereit, Root-Zugriff, Sammler, Stammgast), Toast + persist |
+| **🏆 Achievements** | 11 Erfolge (First Hack, 1K/100K, Netz online, Server-Farm, Upgrader, Root bereit, Root-Zugriff, Sammler, Netzwerk komplett, Stammgast), Toast + persist |
 | **📅 Daily Bonus** | Täglich `500×Streak×Multi` (max 7), Streak via `lastClaim`, Claim in Erfolge-Tab |
 | **🎨 Themes** | Auto (System) + Dark/Light/Hacker-Green, `data-theme`, `prefers-color-scheme`, Toggle in Optionen |
 | **🛒 Bulk-Kauf** | Server-Kauf x1/x10/x100/Max, `getBulkCost`/`getMaxAffordable`/`buyBulk`, ROI-Anzeige |
@@ -69,13 +69,22 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | Icon | Name | Basis /sec | Basis-Kosten | Skalierung |
 |---|---|---:|---:|---|
 | 💻 | Script Kiddie | 0.5 | 15 | ×1.15 |
+| 🧦 | Proxy-Kette | 1.2 | 45 | ×1.14 |
 | 🤖 | Botnet | 4 | 100 | ×1.14 |
+| 🪙 | Krypto-Miner | 12 | 350 | ×1.14 |
 | 🖥️ | Server Farm | 30 | 1.100 | ×1.13 |
+| ⚡ | DDoS-Rig | 90 | 4.000 | ×1.14 |
 | ⚛️ | Quantum Rig | 220 | 12.000 | ×1.14 |
+| 🧪 | Zero-Day-Labor | 650 | 45.000 | ×1.15 |
 | 🧠 | KI-Schwarm | 1.600 | 130.000 | ×1.15 |
+| 🎭 | Deepfake-Studio | 4.800 | 500.000 | ×1.15 |
 | 🕸️ | Darknet-Markt | 12.000 | 1,5M | ×1.15 |
+| 🏦 | Börsen-Coup | 42.000 | 6,5M | ×1.14 |
 | 🛰️ | Satelliten-Uplink | 95.000 | 20M | ×1.14 |
+| 🏢 | Quanten-Rechenzentrum | 340.000 | 85M | ×1.15 |
 | 🌌 | Neural Overmind | 900.000 | 300M | ×1.15 |
+| 🌞 | Dyson-Botnetz | 3,2M | 1,3B | ×1.15 |
+| ♾️ | Singularitäts-Kern | 14M | 6B | ×1.16 |
 
 ### Upgrades
 
@@ -92,6 +101,11 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | 🌋 | Übertaktung II | Alle ×2 | 2,5M |
 | 🕶️ | Markt-Bot | Darknet-Märkte +150% | 4M |
 | 📡 | Uplink-Turbo | Satelliten-Uplinks +150% | 40M |
+| ☄️ | Übertaktung III | Alle ×3 | 100M |
+| 🌠 | Übertaktung IV | Alle ×2 | 2B |
+| 🪐 | Übertaktung V | Alle ×2,5 | 20B |
+
+*(1 dediziertes Output-Upgrade pro Generator, hier nicht vollständig gelistet — siehe `GameConfig.js`.)*
 
 ### Prestige — Root-Zugriff
 
@@ -110,7 +124,7 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | 3 | 🛡️ Netz-Veteran | Start mit **25.000 Bits** |
 | 5 | 👑 Legende des Netzes | **×2** auf Klick & alle Server — permanent |
 
-> Zielkurven (headless validiert via `js/utils/simulate.js`, 5 Klicks/s, greedy): erstes Prestige ~16 min, Darknet-Markt ~36 min, Satelliten-Uplink ~50 min, Neural Overmind ~71 min — mit Prestige-Multiplikatoren entsprechend schneller.
+> Zielkurven (headless validiert via `js/utils/simulate.js`, 5 Klicks/s, greedy): erstes Prestige ~14 min, Satelliten-Uplink ~51 min, Neural Overmind ~75 min, Singularitäts-Kern ~88 min — mit Prestige-Multiplikatoren entsprechend schneller.
 
 ---
 
@@ -168,7 +182,7 @@ Idle-Hacker-Tycoon/
 └── js/
     ├── main.js             # Entry, --vh Fix, Standalone/Updater, Leaderboard-Tabs
     ├── config/
-    │   └── GameConfig.js   # ← Einzige Stelle für Balancing (v0.7.0)
+    │   └── GameConfig.js   # ← Einzige Stelle für Balancing (v0.8.0)
     ├── core/
     │   ├── Game.js         # Facade: Systeme, Loop, Save, Offline 2min/pending, Gummiband, Achievements/Daily
     │   ├── GameLoop.js     # fixer Tick via setInterval + rAF
@@ -280,11 +294,12 @@ Die installierte App läuft ohne Browser-UI, blockiert Text-Manipulation und pr�
 - [x] **v0.5.0** — Polished Beta: Vite 6 + Tauri Desktop, dynamisches Gummiband-Leaderboard (All-Time/Aktuell + Spieler), Username-Pflicht (milchig), Offline 2min-Willkommen, In-Game Popup + Rückkehr, Statistiken→Optionen, Save-Korruptions-Fallback, 4-Step Tutorial, Pages-CI
 - [x] **v0.6.0** — P1: Hack-Minigame (alle 10 Hacks Timing-Bar 3×), Sound/Haptik (WebAudio, Options-Toggle), Achievements (10) + Daily (Streak 7), Balance bis 100M validiert
 - [x] **v0.7.0** — P2: Themes (Auto/Dark/Light/Hacker), Bulk-Kauf x10/x100/Max, Impressum/Datenschutz, Tauri Auto-Updater (latest.json)
+- [x] **v0.8.0** — Längere Progression: 9 neue Generatoren (8→17), 11 neue Upgrades (Ø 1 pro neuem Generator + Übertaktung IV/V), Achievement „Netzwerk komplett“
 - [ ] **v1.0** — Cloud-Save (optional)
 
 Ideen & Bugs gerne als [Issue](../../issues) eröffnen!
 
-**Stand: v0.7.0** – P2: Themes, Bulk, Impressum, Desktop-Updater.
+**Stand: v0.8.0** – Längere Progression: 17 Generatoren, 29 Upgrades.
 
 ---
 

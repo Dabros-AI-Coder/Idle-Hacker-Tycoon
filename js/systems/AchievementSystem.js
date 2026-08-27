@@ -13,6 +13,7 @@ const ACHIEVEMENTS = [
   { id: 'prestige_ready', name: 'Root bereit', desc: '1M total erreicht', icon: '🔓', check: (g) => g.economy.totalEarned >= GameConfig.prestige.threshold },
   { id: 'first_prestige', name: 'Root-Zugriff', desc: '1× prestiget', icon: '👑', check: (g) => g.prestige.totalPrestiges >= 1 },
   { id: 'collection', name: 'Sammler', desc: 'Je 1 von 5 Generatoren', icon: '🧩', check: (g) => ['script_kiddie','botnet','server_farm','quantum_rig','ai_swarm'].every(id=>g.automation.getOwned(id)>=1) },
+  { id: 'collection_full', name: 'Netzwerk komplett', desc: 'Je 1 von jedem Generator', icon: '🌐', check: (g) => GameConfig.generators.every(def=>g.automation.getOwned(def.id)>=1) },
   { id: 'daily3', name: 'Stammgast', desc: '3 Tage Streak', icon: '📅', check: (g) => (g.daily?.streak||0) >= 3 },
 ];
 
