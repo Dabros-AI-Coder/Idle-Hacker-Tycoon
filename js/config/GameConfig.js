@@ -23,7 +23,7 @@ export const GameConfig = Object.freeze({
         // 1 Punkt pro 1M (aufgerundet via gainDivisor)
         gainDivisor: 1_000_000,
         // +10% global auf Klick + Generatoren pro Punkt
-        multiplierPerPoint: 0.10,
+        multiplierPerPoint: 0.05,
         // Meilenstein-Boni: ab N Gesamt-Prestiges permanent aktiv
         // effect.type: 'start_bits' (Bits nach Reset) | 'global_mult' (Multiplikator)
         milestones: [

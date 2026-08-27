@@ -112,7 +112,7 @@ export const tests = [
             const result = prestige.commit();
             assertEquals(result.gain, 2);
             assertEquals(prestige.points, 2);
-            assertClose(prestige.getMultiplier(), 1.2, 1e-9);
+            assertClose(prestige.getMultiplier(), 1.1, 1e-9);
         },
     },
     {

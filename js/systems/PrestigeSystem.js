@@ -21,7 +21,8 @@ export class PrestigeSystem {
     getMultiplierPerPoint() { return GameConfig.prestige.multiplierPerPoint; }
 
     getMultiplier() {
-        return 1 + this.points * this.getMultiplierPerPoint();
+        const base = 1 + this.points * this.getMultiplierPerPoint();
+        return Math.min(base, 1.5); // 50% Bonus cap (1.5 = 100% + 50% bonus)
     }
 
     /** Alle bereits aktivierten Meilensteine */
