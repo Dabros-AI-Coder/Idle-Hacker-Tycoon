@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Playable-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.4.3-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-0.4.5-00ff88?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
   <img src="https://img.shields.io/badge/Vanilla_JS-ES_Modules-ffcc00?style=for-the-badge" alt="Vanilla JS" />
 </p>
@@ -37,9 +37,9 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | **🎮 Hauptmenü** | Screen mit *Spielen / Optionen / Beenden* — das Spiel startet erst bei „Spielen"; Optionen: Vibration, Offline-Ertrag, Tutorial zurücksetzen |
 | **👆 Aktives Hacken** | Tap/Hold auf den Hack-Button, Float-Animation, Haptik (`navigator.vibrate`) |
 | **🤖 8 Generatoren** | Script Kiddie → Botnet → Server Farm → Quantum Rig → KI-Schwarm → Darknet-Markt → Satelliten-Uplink → Neural Overmind |
-| **⬆️ 11 Upgrades** | Klick-Multiplikatoren, Generator-Boosts, Global-Boosts, Unlock-Ketten bis 40M Bits |
+| **⬆️ 18 Upgrades** | Klick- & Generator-Boosts, Global-Boosts, Unlock-Ketten; Balance-capped Prestige-Multiplikator |
 | **📈 Level-System** | 9 Ränge von *Script Kiddie* bis *Singularity* (bis 1B total) mit Progress-Bar |
-| **👑 Prestige (Root-Zugriff)** | Ab 1M `totalEarned` resetten → 1 Punkt pro 1M, **+10 % Global-Multiplikator pro Punkt**, permanent |
+| **👑 Prestige (Root-Zugriff)** | Ab 1M `totalEarned` resetten → 1 Punkt pro 1M, **+5 % Global-Multiplikator pro Punkt** (capped at 50%), permanent |
 | **📱 PWA** | Installierbar (`manifest.json`, Icons), Standalone-Erkennung, Browser-Schutz (kein Rechtsklick/Markieren/Kopieren in der App) |
 | **🔄 Auto-Update-Check** | Installierte App prüft `version.json` (Cache-Bypass) → Bestätigungsdialog bei neuer Version; „Später" gilt nur pro Session; Schleifenschutz falls das CDN die neue Version noch nicht ausliefert |
 | **💾 Persistenz** | Auto-Save alle 5s + `visibilitychange` + `beforeunload`, `localStorage` |
@@ -245,12 +245,16 @@ Die installierte App läuft ohne Browser-UI, blockiert Text-Manipulation und pr�
 - [x] **v0.4.1** — Open-Beta-Polish: Onboarding, Test-Suite, Social-Preview
 - [x] **v0.4.2** — Hauptmenü (Spielen/Optionen/Beenden) + Benutzeroptionen
 - [x] **v0.4.3** — Feedback mit System-Info, PWA-Install-Prompt, Plausible Analytics
+- [x] **v0.4.4** — Balance-Cap: Prestige-Bonus capped at 50%, neue Upgrades (7 Stück)
+- [x] **v0.4.5** — NPC-Leaderboard (20 Positionen, Single-Player Motivations-Hilfe)
 - [ ] **v0.5** — Hack-Minigame (Timing/Pattern)
 - [ ] **v0.5** — Achievements & Daily Rewards
 - [ ] **v0.6** — Sound/Musik + Themes (Light/Dark/Hacker-Green)
 - [ ] **v1.0** — Cloud-Save (optional), Leaderboard
 
 Ideen & Bugs gerne als [Issue](../../issues) eröffnen!
+
+**Stand: v0.4.5** – Neu: 50% Prestige-Bonus-Cap, 18 Upgrades, NPC-Leaderboard (20 Positionen, Single-Player).
 
 ---
 
