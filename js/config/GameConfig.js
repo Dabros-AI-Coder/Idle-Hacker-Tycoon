@@ -3,7 +3,7 @@
  * Modular: jede Balance-Änderung nur hier.
  */
 export const GameConfig = Object.freeze({
-    version: '0.7.0',
+    version: '0.7.1',
     saveKey: 'idle_hacker_tycoon_v02',
     // Version des Save-Schemas (unabhängig vom localStorage-Key).
     // Bei Schema-Änderungen: hier erhöhen + Migration in Game.MIGRATIONS ergänzen.

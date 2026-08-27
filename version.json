@@ -1,5 +1,5 @@
 {
-  "version": "0.7.0",
+  "version": "0.7.1",
   "build": 20260827,
-  "notes": "P2: Themes (Light/Dark/Hacker), Bulk-Kauf x10/x100/Max, Impressum, Tauri Auto-Updater"
+  "notes": "Terminal-Redesign: JetBrains Mono, CRT-Scanline-Overlay, Klammer-Buttons, Zahlen-Glitch-Effekt, Terminal-Fenster-Ecken auf allen 4 Themes"
 }

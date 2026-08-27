@@ -24,17 +24,23 @@
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png" />
     <link rel="manifest" href="manifest.json" />
     <title>Idle Hacker Tycoon</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="css/style.css" />
     <!-- Plausible Analytics (privacy-friendly, kein Cookie-Banner nötig) -->
     <!-- Domain in data-domain anpassen nach Deployment auf eigenem Domain; auf GitHub Pages eigenständig nutzbar. -->
     <script defer data-domain="dabros-ai-coder.github.io" src="https://plausible.io/js/script.js"></script>
 </head>
 <body>
+    <!-- CRT-/Terminal-Overlay: rein dekorativ, blockiert keine Interaktion -->
+    <div id="crt-overlay" aria-hidden="true"></div>
+
     <!-- HAUPTMENÜ (deckt die App bis "Spielen" ab) -->
     <div id="main-menu">
         <div class="menu-inner">
             <h1 class="menu-logo">IDLE<span>HACKER</span></h1>
-            <p class="menu-sub">// TYCOON_</p>
+            <p class="menu-sub">// TYCOON<span class="cursor">_</span></p>
 
             <div id="menu-main" class="menu-panel">
                 <button id="menu-play" class="menu-btn primary">▶&nbsp; SPIELEN</button>
@@ -113,7 +119,7 @@
         <header id="header">
             <div class="header-left">
                 <h1 class="logo">IDLE<span>HACKER</span></h1>
-                <span class="subtitle">TYCOON v0.7</span>
+                <span class="subtitle">TYCOON v0.7<span class="cursor">_</span></span>
             </div>
             <div class="header-right">
                 <div class="stat-box">

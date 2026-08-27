@@ -77,15 +77,18 @@ export class UIManager {
                     const bonus = value * (mult - 1);
                     this.game.economy.addBits(bonus);
                     this._spawnFloat(`+${Formatter.formatBits(value * mult)} ★`);
+                    this._glitch(this.els.bits);
                     haptic([20, 30]); audio.hackMinigameHit();
                 } else {
                     this._spawnFloat(`+${Formatter.formatBits(value)}`);
+                    this._glitch(this.els.bits);
                     haptic(20); audio.click();
                 }
                 return;
             }
             const value = this.game.click.hack();
             this._spawnFloat(`+${Formatter.formatBits(value)}`);
+            this._glitch(this.els.bits);
             haptic(20); audio.click();
         };
         if (this.els.btnHack) {
@@ -201,6 +204,11 @@ export class UIManager {
 
         // Level Bar
         const lvl = this._calcLevel(snap.totalEarned);
+        if (this._lastLevel !== undefined && lvl.level > this._lastLevel) {
+            this._glitch(this.els.levelText);
+            audio.levelUp();
+        }
+        this._lastLevel = lvl.level;
         this.els.levelText.textContent = `Lvl ${lvl.level} — ${lvl.name}`;
         this.els.levelProgress.style.width = `${lvl.progress * 100}%`;
 
@@ -817,6 +825,15 @@ export class UIManager {
         const next = th[level] ?? cur * 2;
         const progress = next === cur ? 1 : Math.min(1, (totalEarned - cur) / (next - cur));
         return { level, name: names[level - 1] ?? names[names.length - 1], progress };
+    }
+
+    /** Kurzer RGB-Split-Glitch auf einem Element (CRT-Terminal-Feedback bei Zahlen-Sprüngen). */
+    _glitch(el) {
+        if (!el) return;
+        el.classList.remove('value-glitch');
+        // Reflow erzwingen, damit die Animation bei schnell aufeinanderfolgenden Klicks neu startet
+        void el.offsetWidth;
+        el.classList.add('value-glitch');
     }
 
     _spawnFloat(text) {
