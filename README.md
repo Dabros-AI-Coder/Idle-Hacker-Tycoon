@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Polished-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.10.1-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-0.11.0-00ff88?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
   <img src="https://img.shields.io/badge/Stack-Vite_Tauri-ffcc00?style=for-the-badge" alt="Vite Tauri" />
 </p>
@@ -37,8 +37,8 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | **🎮 Hauptmenü** | *Spielen / Optionen / Beenden* — Spiel startet erst bei „Spielen“; In-Game `☰` Popup (Hauptmenü / Optionen / Beenden) mit Rückkehr zum Spiel; Optionen jetzt mit Subtabs *Optionen ↔ Statistiken* |
 | **👤 Hacker-Name** | Beim ersten Start Pflicht-Popup „Wie sollen wir dich nennen?“ (milchiger Blur, Bestätigen/Enter) über In-Game, 2–16 Zeichen, änderbar in Optionen |
 | **👆 Aktives Hacken** | Tap/Hold auf den Hack-Button, Float-Animation, Haptik (`navigator.vibrate`) |
-| **🤖 17 Generatoren** | Script Kiddie → Proxy-Kette → Botnet → Krypto-Miner → Server Farm → DDoS-Rig → Quantum Rig → Zero-Day-Labor → KI-Schwarm → Deepfake-Studio → Darknet-Markt → Börsen-Coup → Satelliten-Uplink → Quanten-Rechenzentrum → Neural Overmind → Dyson-Botnetz → Singularitäts-Kern |
-| **⬆️ 28 Upgrades** | Klick- & Generator-Boosts (1 pro Generator), 5 globale Übertaktungsstufen, Unlock-Ketten; Balance-capped Prestige-Multiplikator |
+| **🤖 17 Generatoren** | Script Kiddie → … → Singularitäts-Kern, **4 Tiers** (Einstieg/Mittel/Hoch/Endgame, je 4–5, kollabierbar, Badge) |
+| **⬆️ 28 Upgrades** | **4 Gruppen** Klick (4)/Server (17)/Global (5)/Effizienz (2) kollabierbar + Filterchips (Alle/Kaufbar/Gekauft/Gesperrt) |
 | **📈 Level-System** | 9 Ränge von *Script Kiddie* bis *Singularity* (bis 1B total) mit Progress-Bar |
 | **👑 Prestige (Root-Zugriff)** | Ab 1M `totalEarned` resetten → 1 Punkt pro 1M, **+5 % Global-Multiplikator pro Punkt** (capped at 50%), permanent |
 | **💾 CPU-Chip-Shop** | Zweitwährung aus Prestige, 6 leveled Permanent-Upgrades (Root-Tab), überlebt normalen Reset — löst das "Prestige verliert nach 2-3 Runs an Spannung"-Problem des reinen Auto-Multiplikators |
@@ -206,7 +206,7 @@ Idle-Hacker-Tycoon/
 └── js/
     ├── main.js             # Entry, --vh Fix, Standalone/Updater, Leaderboard-Tabs
     ├── config/
-    │   └── GameConfig.js   # ← Einzige Stelle für Balancing (v0.10.1)
+    │   └── GameConfig.js   # ← Einzige Stelle für Balancing (v0.11.0)
     ├── core/
     │   ├── Game.js         # Facade: Systeme, Loop, Save, Offline 2min/pending, Gummiband, Achievements/Daily
     │   ├── GameLoop.js     # fixer Tick via setInterval + rAF
@@ -322,11 +322,13 @@ Die installierte App läuft ohne Browser-UI, blockiert Text-Manipulation und pr�
 - [x] **v0.8.0** — Längere Progression: 9 neue Generatoren (8→17), 11 neue Upgrades (Ø 1 pro neuem Generator + Übertaktung IV/V), Achievement „Netzwerk komplett“
 - [x] **v0.9.0** — CPU-Chip-Shop: Prestige-Zweitwährung mit 6 leveled Permanent-Upgrades, überlebt normale Resets — hält Root-Zugriff auch nach vielen Durchläufen spannend
 - [x] **v0.10.0** — 9 neue Prestige-Meilensteine (bis Prestige 50), Prestige-Schwelle wächst ×1.3/Prestige (löst triviale Wiederholungs-Prestiges), Bugfix: Meilenstein-Multiplikator wirkte bisher nicht auf Klicks
+- [x] **v0.10.1** — Fix: „Fortschritt löschen“ löscht auch Username + Tutorial-Flag (Theme/Sound bleiben)
+- [x] **v0.11.0** — Kategorien: 4 Generator-Tiers (Einstieg/Mittel/Hoch/Endgame) + 4 Upgrade-Gruppen (Klick/Server/Global/Effizienz) kollabierbar + Filterchips
 - [ ] **v1.0** — Cloud-Save (optional)
 
 Ideen & Bugs gerne als [Issue](../../issues) eröffnen!
 
-**Stand: v0.10.1** – Terminal-Redesign + 17 Generatoren/29 Upgrades/CPU-Chip-Shop/50 Prestige-Meilensteine (v0.7.1+v0.10.0 Merge).
+**Stand: v0.11.0** – Kategorien (4 Tiers + 4 Upgrade-Gruppen kollabierbar), Terminal-Redesign, 17 Gen/28 Upg, CPU-Chip-Shop.
 
 ---
 

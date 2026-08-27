@@ -3,7 +3,7 @@
  * Modular: jede Balance-Änderung nur hier.
  */
 export const GameConfig = Object.freeze({
-    version: '0.10.1',
+    version: '0.11.0',
     saveKey: 'idle_hacker_tycoon_v02',
     // Version des Save-Schemas (unabhängig vom localStorage-Key).
     // Bei Schema-Änderungen: hier erhöhen + Migration in Game.MIGRATIONS ergänzen.
@@ -46,6 +46,14 @@ export const GameConfig = Object.freeze({
         ],
     },
 
+    // Kategorien für gruppierte Darstellung (Tier-A = Einstieg … Tier-D = Endgame)
+    generatorCategories: [
+        { id: 'tier1', name: 'Einstieg', icon: '🌱', desc: '15–1,1k · schneller ROI' },
+        { id: 'tier2', name: 'Mittelklasse', icon: '⚙️', desc: '4k–130k · stabiler Ertrag' },
+        { id: 'tier3', name: 'Hochleistung', icon: '🚀', desc: '500k–20M · skaliert stark' },
+        { id: 'tier4', name: 'Endgame', icon: '🌌', desc: '85M–6B · nur mit Prestige' },
+    ],
+
     generators: [
         {
             id: 'script_kiddie',
@@ -55,6 +63,7 @@ export const GameConfig = Object.freeze({
             baseCost: 15,
             costMultiplier: 1.15,
             basePerSec: 0.5,
+            category: 'tier1',
         },
         {
             id: 'proxy_chain',
@@ -64,6 +73,7 @@ export const GameConfig = Object.freeze({
             baseCost: 45,
             costMultiplier: 1.14,
             basePerSec: 1.2,
+            category: 'tier1',
         },
         {
             id: 'botnet',
@@ -73,6 +83,7 @@ export const GameConfig = Object.freeze({
             baseCost: 100,
             costMultiplier: 1.14,
             basePerSec: 4,
+            category: 'tier1',
         },
         {
             id: 'crypto_miner',
@@ -82,6 +93,7 @@ export const GameConfig = Object.freeze({
             baseCost: 350,
             costMultiplier: 1.14,
             basePerSec: 12,
+            category: 'tier1',
         },
         {
             id: 'server_farm',
@@ -91,6 +103,7 @@ export const GameConfig = Object.freeze({
             baseCost: 1100,
             costMultiplier: 1.13,
             basePerSec: 30,
+            category: 'tier1',
         },
         {
             id: 'ddos_rig',
@@ -100,6 +113,7 @@ export const GameConfig = Object.freeze({
             baseCost: 4000,
             costMultiplier: 1.14,
             basePerSec: 90,
+            category: 'tier2',
         },
         {
             id: 'quantum_rig',
@@ -109,6 +123,7 @@ export const GameConfig = Object.freeze({
             baseCost: 12000,
             costMultiplier: 1.14,
             basePerSec: 220,
+            category: 'tier2',
         },
         {
             id: 'zero_day_lab',
@@ -118,6 +133,7 @@ export const GameConfig = Object.freeze({
             baseCost: 45000,
             costMultiplier: 1.15,
             basePerSec: 650,
+            category: 'tier2',
         },
         {
             id: 'ai_swarm',
@@ -127,6 +143,7 @@ export const GameConfig = Object.freeze({
             baseCost: 130000,
             costMultiplier: 1.15,
             basePerSec: 1600,
+            category: 'tier2',
         },
         {
             id: 'deepfake_studio',
@@ -136,6 +153,7 @@ export const GameConfig = Object.freeze({
             baseCost: 500000,
             costMultiplier: 1.15,
             basePerSec: 4800,
+            category: 'tier3',
         },
         {
             id: 'dark_market',
@@ -145,6 +163,7 @@ export const GameConfig = Object.freeze({
             baseCost: 1500000,
             costMultiplier: 1.15,
             basePerSec: 12000,
+            category: 'tier3',
         },
         {
             id: 'exchange_heist',
@@ -154,6 +173,7 @@ export const GameConfig = Object.freeze({
             baseCost: 6500000,
             costMultiplier: 1.14,
             basePerSec: 42000,
+            category: 'tier3',
         },
         {
             id: 'satellite_uplink',
@@ -163,6 +183,7 @@ export const GameConfig = Object.freeze({
             baseCost: 20000000,
             costMultiplier: 1.14,
             basePerSec: 95000,
+            category: 'tier3',
         },
         {
             id: 'quantum_datacenter',
@@ -172,6 +193,7 @@ export const GameConfig = Object.freeze({
             baseCost: 85000000,
             costMultiplier: 1.15,
             basePerSec: 340000,
+            category: 'tier4',
         },
         {
             id: 'neural_overmind',
@@ -181,6 +203,7 @@ export const GameConfig = Object.freeze({
             baseCost: 300000000,
             costMultiplier: 1.15,
             basePerSec: 900000,
+            category: 'tier4',
         },
         {
             id: 'dyson_botnet',
@@ -190,6 +213,7 @@ export const GameConfig = Object.freeze({
             baseCost: 1300000000,
             costMultiplier: 1.15,
             basePerSec: 3200000,
+            category: 'tier4',
         },
         {
             id: 'singularity_core',
@@ -199,7 +223,16 @@ export const GameConfig = Object.freeze({
             baseCost: 6000000000,
             costMultiplier: 1.16,
             basePerSec: 14000000,
+            category: 'tier4',
         },
+    ],
+
+    // Kategorien für Upgrade-Tab (4 Gruppen)
+    upgradeCategories: [
+        { id: 'click', name: 'Klick', icon: '👆', desc: 'HACK selbst verstärken' },
+        { id: 'server', name: 'Server-Boosts', icon: '⚙️', desc: 'einzelne Generator-Typen' },
+        { id: 'global', name: 'Global', icon: '🌋', desc: 'alle Server gleichzeitig' },
+        { id: 'utility', name: 'Effizienz', icon: '🛠️', desc: 'Kosten & Offline' },
     ],
 
     upgrades: [
@@ -211,6 +244,7 @@ export const GameConfig = Object.freeze({
             cost: 50,
             effect: { type: 'click_mult', value: 2 },
             requires: null,
+            category: 'click',
         },
         {
             id: 'energy_drink',
@@ -220,6 +254,7 @@ export const GameConfig = Object.freeze({
             cost: 500,
             effect: { type: 'click_mult', value: 2 },
             requires: 'better_keyboard',
+            category: 'click',
         },
         {
             id: 'script_optimization',
@@ -229,6 +264,7 @@ export const GameConfig = Object.freeze({
             cost: 300,
             effect: { type: 'generator_mult', target: 'script_kiddie', value: 1.75 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'botnet_upgrade',
@@ -238,6 +274,7 @@ export const GameConfig = Object.freeze({
             cost: 2500,
             effect: { type: 'generator_mult', target: 'botnet', value: 2 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'overclock',
@@ -247,6 +284,7 @@ export const GameConfig = Object.freeze({
             cost: 15000,
             effect: { type: 'global_mult', value: 1.5 },
             requires: null,
+            category: 'global',
         },
         {
             id: 'quantum_cooling',
@@ -256,6 +294,7 @@ export const GameConfig = Object.freeze({
             cost: 80000,
             effect: { type: 'generator_mult', target: 'quantum_rig', value: 2 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'bionic_fingers',
@@ -265,6 +304,7 @@ export const GameConfig = Object.freeze({
             cost: 100000,
             effect: { type: 'click_mult', value: 3 },
             requires: 'energy_drink',
+            category: 'click',
         },
         {
             id: 'swarm_protocol',
@@ -274,6 +314,7 @@ export const GameConfig = Object.freeze({
             cost: 600000,
             effect: { type: 'generator_mult', target: 'ai_swarm', value: 2.5 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'overclock_ii',
@@ -283,6 +324,7 @@ export const GameConfig = Object.freeze({
             cost: 2500000,
             effect: { type: 'global_mult', value: 2 },
             requires: 'overclock',
+            category: 'global',
         },
         {
             id: 'market_bot',
@@ -292,6 +334,7 @@ export const GameConfig = Object.freeze({
             cost: 4000000,
             effect: { type: 'generator_mult', target: 'dark_market', value: 2.5 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'uplink_turbo',
@@ -301,6 +344,7 @@ export const GameConfig = Object.freeze({
             cost: 40000000,
             effect: { type: 'generator_mult', target: 'satellite_uplink', value: 2.5 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'server_virtualization',
@@ -310,6 +354,7 @@ export const GameConfig = Object.freeze({
             cost: 500000,
             effect: { type: 'generator_mult', target: 'server_farm', value: 2 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'neural_link',
@@ -319,6 +364,7 @@ export const GameConfig = Object.freeze({
             cost: 500000000,
             effect: { type: 'generator_mult', target: 'neural_overmind', value: 3 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'overclock_iii',
@@ -328,6 +374,7 @@ export const GameConfig = Object.freeze({
             cost: 100000000,
             effect: { type: 'global_mult', value: 3 },
             requires: 'overclock_ii',
+            category: 'global',
         },
         {
             id: 'caffeine_iv',
@@ -337,6 +384,7 @@ export const GameConfig = Object.freeze({
             cost: 10000000,
             effect: { type: 'click_mult', value: 5 },
             requires: 'bionic_fingers',
+            category: 'click',
         },
         {
             id: 'cost_optimizer',
@@ -346,6 +394,7 @@ export const GameConfig = Object.freeze({
             cost: 25000000,
             effect: { type: 'cost_reduction', value: 0.95 },
             requires: 'overclock',
+            category: 'utility',
         },
         {
             id: 'offline_extender',
@@ -355,6 +404,7 @@ export const GameConfig = Object.freeze({
             cost: 5000000,
             effect: { type: 'offline_cap_mult', value: 2 },
             requires: null,
+            category: 'utility',
         },
         {
             id: 'proxy_upgrade',
@@ -364,6 +414,7 @@ export const GameConfig = Object.freeze({
             cost: 900,
             effect: { type: 'generator_mult', target: 'proxy_chain', value: 2 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'mining_pool',
@@ -373,6 +424,7 @@ export const GameConfig = Object.freeze({
             cost: 7000,
             effect: { type: 'generator_mult', target: 'crypto_miner', value: 2 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'ddos_amplification',
@@ -382,6 +434,7 @@ export const GameConfig = Object.freeze({
             cost: 80000,
             effect: { type: 'generator_mult', target: 'ddos_rig', value: 2 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'exploit_database',
@@ -391,6 +444,7 @@ export const GameConfig = Object.freeze({
             cost: 900000,
             effect: { type: 'generator_mult', target: 'zero_day_lab', value: 2.5 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'synthetic_voices',
@@ -400,6 +454,7 @@ export const GameConfig = Object.freeze({
             cost: 10000000,
             effect: { type: 'generator_mult', target: 'deepfake_studio', value: 2.5 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'insider_access',
@@ -409,6 +464,7 @@ export const GameConfig = Object.freeze({
             cost: 130000000,
             effect: { type: 'generator_mult', target: 'exchange_heist', value: 2.5 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'qubit_array',
@@ -418,6 +474,7 @@ export const GameConfig = Object.freeze({
             cost: 1700000000,
             effect: { type: 'generator_mult', target: 'quantum_datacenter', value: 3 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'solar_collector',
@@ -427,6 +484,7 @@ export const GameConfig = Object.freeze({
             cost: 26000000000,
             effect: { type: 'generator_mult', target: 'dyson_botnet', value: 3 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'singularity_matrix',
@@ -436,6 +494,7 @@ export const GameConfig = Object.freeze({
             cost: 120000000000,
             effect: { type: 'generator_mult', target: 'singularity_core', value: 3 },
             requires: null,
+            category: 'server',
         },
         {
             id: 'overclock_iv',
@@ -445,6 +504,7 @@ export const GameConfig = Object.freeze({
             cost: 2000000000,
             effect: { type: 'global_mult', value: 2 },
             requires: 'overclock_iii',
+            category: 'global',
         },
         {
             id: 'overclock_v',
@@ -454,17 +514,10 @@ export const GameConfig = Object.freeze({
             cost: 20000000000,
             effect: { type: 'global_mult', value: 2.5 },
             requires: 'overclock_iv',
-        },
+            category: 'global',
+        }
     ],
 
-    /**
-     * Prestige-Shop — permanenter Zweitwährungs-Shop (CPU-Chips).
-     * Käufe überleben normale Prestige-Resets (nur Save-Wipe löscht sie).
-     * effect.type: 'global_mult_add' | 'click_mult_add' | 'cost_reduction_add'
-     *              (laufen additiv als Bonus in Automation/ClickSystem)
-     *            | 'prestige_gain_mult' (erhöht Root-Keys+Chips-Gewinn pro Prestige)
-     *            | 'start_bits_add' | 'offline_cap_add' (on-demand aus levels berechnet)
-     */
     prestigeShop: [
         { id: 'sp_global', name: 'Root-Protokoll', icon: '🔑', description: '+5% auf alle Server pro Stufe', baseCost: 2, costMultiplier: 1.6, maxLevel: 30, effect: { type: 'global_mult_add', perLevel: 0.05 } },
         { id: 'sp_click', name: 'Neuronale Beschleunigung', icon: '🧠', description: '+10% Klick-Power pro Stufe', baseCost: 1, costMultiplier: 1.5, maxLevel: 20, effect: { type: 'click_mult_add', perLevel: 0.10 } },

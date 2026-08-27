@@ -17,9 +17,38 @@ export class UIManager {
         this.els = {};
         this.bulkAmount = 1;
         this.bulkOptions = [1, 10, 100, 'max'];
+        this._collapsed = this._loadCollapsed();
+        this.upgradeFilter = this._loadUpgradeFilter();
         this._bindElements();
         this._bindEvents();
         this._subscribe();
+    }
+
+    _loadCollapsed() {
+        try { return JSON.parse(localStorage.getItem('idle_hacker_categories_collapsed') || '{}'); } catch { return {}; }
+    }
+    _saveCollapsed() {
+        try { localStorage.setItem('idle_hacker_categories_collapsed', JSON.stringify(this._collapsed)); } catch {}
+    }
+    _isCollapsed(type, id) {
+        const key = `${type}:${id}`;
+        if (key in this._collapsed) return this._collapsed[key];
+        // Defaults: Endgame (tier4) und Utility kollabiert bis Spieler Fortschritt hat
+        if (type === 'gen' && id === 'tier4') return this.game.economy.totalEarned < 10000000;
+        if (type === 'upg' && id === 'utility') return true;
+        return false;
+    }
+    _toggleCollapsed(type, id) {
+        const key = `${type}:${id}`;
+        this._collapsed[key] = !this._isCollapsed(type, id);
+        this._saveCollapsed();
+    }
+    _loadUpgradeFilter() {
+        try { return localStorage.getItem('idle_hacker_upgrade_filter') || 'all'; } catch { return 'all'; }
+    }
+    _saveUpgradeFilter(v) {
+        this.upgradeFilter = v;
+        try { localStorage.setItem('idle_hacker_upgrade_filter', v); } catch {}
     }
 
     _bindElements() {
@@ -727,33 +756,66 @@ export class UIManager {
             ${this.bulkOptions.map(opt => `<button class="bulk-btn ${String(this.bulkAmount)===String(opt)?'active':''}" data-bulk="${opt}">x${opt}</button>`).join('')}
         </div>`;
 
-        // --- Generator Items (mit Bulk) ---
-        const itemsHtml = states.map((s, idx) => {
-            const share = totalPerSec > 0 ? (s.perSec / totalPerSec) * 100 : 0;
-            const tierLabel = `T${idx + 1}`;
-            const roi = s.def.basePerSec > 0 ? (s.cost / (s.def.basePerSec * (this.game.automation.genMultipliers.get(s.def.id) || 1) * this.game.automation.globalMultiplier)) : 0;
-            const roiText = s.owned === 0 && s.def.basePerSec > 0 ? ` · ROI ~${Math.ceil(roi)}s` : '';
-            const isMax = this.bulkAmount === 'max';
-            const bulkAmt = isMax ? this.game.automation.getMaxAffordable(s.def.id) : Number(this.bulkAmount);
-            const bulkCost = isMax ? this.game.automation.getBulkCost(s.def.id, bulkAmt) : this.game.automation.getBulkCost(s.def.id, bulkAmt);
-            const canAffordBulk = bulkAmt > 0 && this.game.economy.bits >= bulkCost;
-            const btnLabel = isMax ? (bulkAmt > 0 ? `Max x${bulkAmt} · ${Formatter.formatBits(bulkCost)}` : 'Max') : `${Formatter.formatBits(bulkCost)} ${bulkAmt>1?`x${bulkAmt}`:''}`;
-            return `
-            <div class="item ${canAffordBulk ? 'can-afford' : ''}" data-id="${s.def.id}">
-                <div class="item-icon">${s.def.icon}</div>
-                <div class="item-info">
-                    <div class="item-name">${s.def.name}<span class="item-tier">${tierLabel}</span></div>
-                    <div class="item-desc">${s.def.description}</div>
-                    <div class="item-meta">${Formatter.formatPerSec(s.def.basePerSec)} Bits/sec pro Einheit${roiText}</div>
-                    <div class="item-footer"><span class="share">${share.toFixed(1)}% Output</span> · ${Formatter.formatBits(s.perSec)} /sec total</div>
-                    <div class="item-progress" title="Anteil am Gesamt-Output"><div class="item-progress-fill" style="width:${share.toFixed(1)}%"></div></div>
+        // --- Generator Items gruppiert nach Tier (kollabierbar) ---
+        const catMap = new Map();
+        for (const c of (GameConfig.generatorCategories || [])) catMap.set(c.id, { ...c, items: [] });
+        const uncategorized = [];
+        states.forEach((s, idx) => {
+            s._idx = idx;
+            const catId = s.def.category || 'tier1';
+            const bucket = catMap.get(catId);
+            if (bucket) bucket.items.push(s);
+            else uncategorized.push(s);
+        });
+        const categories = [...catMap.values()].filter(c => c.items.length > 0);
+        if (uncategorized.length) categories.push({ id: 'other', name: 'Sonstige', icon: '📦', desc: '', items: uncategorized });
+
+        let categoriesHtml = '';
+        for (const cat of categories) {
+            const ownedInCat = cat.items.reduce((a, s) => a + s.owned, 0);
+            const perSecInCat = cat.items.reduce((a, s) => a + s.perSec, 0);
+            const collapsed = this._isCollapsed('gen', cat.id);
+            const badge = `${ownedInCat}× · ${Formatter.formatBits(perSecInCat)}/s`;
+            const itemsHtml = cat.items.map(s => {
+                const share = totalPerSec > 0 ? (s.perSec / totalPerSec) * 100 : 0;
+                const tierLabel = `T${s._idx + 1}`;
+                const roi = s.def.basePerSec > 0 ? (s.cost / (s.def.basePerSec * (this.game.automation.genMultipliers.get(s.def.id) || 1) * this.game.automation.globalMultiplier)) : 0;
+                const roiText = s.owned === 0 && s.def.basePerSec > 0 ? ` · ROI ~${Math.ceil(roi)}s` : '';
+                const isMax = this.bulkAmount === 'max';
+                const bulkAmt = isMax ? this.game.automation.getMaxAffordable(s.def.id) : Number(this.bulkAmount);
+                const bulkCost = isMax ? this.game.automation.getBulkCost(s.def.id, bulkAmt) : this.game.automation.getBulkCost(s.def.id, bulkAmt);
+                const canAffordBulk = bulkAmt > 0 && this.game.economy.bits >= bulkCost;
+                const btnLabel = isMax ? (bulkAmt > 0 ? `Max x${bulkAmt} · ${Formatter.formatBits(bulkCost)}` : 'Max') : `${Formatter.formatBits(bulkCost)} ${bulkAmt>1?`x${bulkAmt}`:''}`;
+                return `
+                <div class="item ${canAffordBulk ? 'can-afford' : ''}" data-id="${s.def.id}">
+                    <div class="item-icon">${s.def.icon}</div>
+                    <div class="item-info">
+                        <div class="item-name">${s.def.name}<span class="item-tier">${tierLabel}</span></div>
+                        <div class="item-desc">${s.def.description}</div>
+                        <div class="item-meta">${Formatter.formatPerSec(s.def.basePerSec)} Bits/sec pro Einheit${roiText}</div>
+                        <div class="item-footer"><span class="share">${share.toFixed(1)}% Output</span> · ${Formatter.formatBits(s.perSec)} /sec total</div>
+                        <div class="item-progress" title="Anteil am Gesamt-Output"><div class="item-progress-fill" style="width:${share.toFixed(1)}%"></div></div>
+                    </div>
+                    <div class="item-owned">x${s.owned}</div>
+                    <button class="btn-buy" data-buy="${s.def.id}" ${canAffordBulk ? '' : 'disabled'}>
+                        ${btnLabel}
+                    </button>
+                </div>`;
+            }).join('');
+            categoriesHtml += `
+            <section class="category ${collapsed ? 'collapsed' : ''}" data-cat="${cat.id}">
+                <div class="category-header" data-cat-toggle="${cat.id}">
+                    <span class="cat-icon">${cat.icon}</span>
+                    <div class="cat-info">
+                        <div class="cat-name">${cat.name}</div>
+                        <div class="cat-desc">${cat.desc}</div>
+                    </div>
+                    <span class="cat-badge">${badge}</span>
+                    <span class="cat-toggle">▼</span>
                 </div>
-                <div class="item-owned">x${s.owned}</div>
-                <button class="btn-buy" data-buy="${s.def.id}" ${canAffordBulk ? '' : 'disabled'}>
-                    ${btnLabel}
-                </button>
-            </div>`;
-        }).join('');
+                <div class="category-grid">${itemsHtml}</div>
+            </section>`;
+        }
 
         const emptyHint = totalOwned === 0 ? `<div class="server-empty">🛰️ <strong>Dein Netzwerk ist offline.</strong><br>Starte mit <strong>Script Kiddie</strong> (15 Bits) — der erste Knoten öffnet den Idle-Ertrag.</div>` : '';
 
@@ -773,7 +835,7 @@ export class UIManager {
             </div>
             ${bulkHtml}
             ${emptyHint}
-            ${itemsHtml}
+            ${categoriesHtml}
         `;
 
         for (const btn of this.els.generatorsList.querySelectorAll('[data-bulk]')) {
@@ -781,6 +843,14 @@ export class UIManager {
                 this.bulkAmount = btn.dataset.bulk === 'max' ? 'max' : Number(btn.dataset.bulk);
                 this.renderGenerators();
                 haptic(10); audio.click();
+            });
+        }
+        for (const hdr of this.els.generatorsList.querySelectorAll('[data-cat-toggle]')) {
+            hdr.addEventListener('click', () => {
+                this._toggleCollapsed('gen', hdr.dataset.catToggle);
+                const sec = hdr.closest('.category');
+                if (sec) sec.classList.toggle('collapsed');
+                haptic(8);
             });
         }
         for (const btn of this.els.generatorsList.querySelectorAll('[data-buy]')) {
@@ -798,35 +868,109 @@ export class UIManager {
 
     renderUpgrades() {
         const states = this.game.upgrades.getAllStates();
-        // Sort: verfügbar zuerst, dann gesperrt, gekauft zuletzt
-        states.sort((a, b) => {
-            if (a.purchased !== b.purchased) return a.purchased ? 1 : -1;
-            if (a.unlocked !== b.unlocked) return a.unlocked ? -1 : 1;
-            return 0;
-        });
-
         if (states.length === 0) {
             this.els.upgradesList.innerHTML = `<p style="color:var(--text-dim);text-align:center;padding:16px;">Keine Upgrades verfügbar</p>`;
             return;
         }
+        // Filterchips
+        const chipDefs = [
+            { id: 'all', label: 'Alle' },
+            { id: 'affordable', label: 'Kaufbar' },
+            { id: 'purchased', label: 'Gekauft' },
+            { id: 'locked', label: 'Gesperrt' },
+        ];
+        const activeFilter = this.upgradeFilter || 'all';
+        const filterFn = (s) => {
+            if (activeFilter === 'all') return true;
+            if (activeFilter === 'affordable') return s.canAfford && !s.purchased && s.unlocked;
+            if (activeFilter === 'purchased') return s.purchased;
+            if (activeFilter === 'locked') return !s.unlocked;
+            return true;
+        };
+        const filtered = states.filter(filterFn);
+        // Sort: kaufbar zuerst, dann verfügbar, gekauft zuletzt
+        filtered.sort((a, b) => {
+            if (a.purchased !== b.purchased) return a.purchased ? 1 : -1;
+            if (a.unlocked !== b.unlocked) return a.unlocked ? -1 : 1;
+            if (a.canAfford !== b.canAfford) return a.canAfford ? -1 : 1;
+            return 0;
+        });
 
-        this.els.upgradesList.innerHTML = states.map(s => {
-            const locked = !s.unlocked;
-            const owned = s.purchased;
-            return `
-            <div class="item ${owned ? 'upgrade-owned' : ''} ${s.canAfford && !owned ? 'can-afford' : ''}" style="${locked ? 'opacity:0.45' : ''}">
-                <div class="item-icon">${s.def.icon}</div>
-                <div class="item-info">
-                    <div class="item-name">${s.def.name} ${owned ? '✓' : ''} ${locked ? '🔒' : ''}</div>
-                    <div class="item-desc">${s.def.description}</div>
-                    <div class="item-meta">${owned ? 'Gekauft' : locked ? `Benötigt: ${GameConfig.getUpgrade(s.def.requires)?.name ?? s.def.requires}` : `${Formatter.formatBits(s.def.cost)} Bits`}</div>
+        const catMap = new Map();
+        for (const c of (GameConfig.upgradeCategories || [])) catMap.set(c.id, { ...c, items: [] });
+        const uncategorized = [];
+        for (const s of filtered) {
+            const catId = s.def.category || 'server';
+            const bucket = catMap.get(catId);
+            if (bucket) bucket.items.push(s);
+            else uncategorized.push(s);
+        }
+        // Falls Filter leere Kategorien erzeugt, trotzdem Header zeigen aber mit Hinweis
+        let categories = [...catMap.values()];
+        if (uncategorized.length) categories.push({ id: 'other', name: 'Sonstige', icon: '📦', desc: '', items: uncategorized });
+
+        const chipsHtml = `<div class="filter-chips">${chipDefs.map(c => `<button class="filter-chip ${activeFilter===c.id?'active':''}" data-upg-filter="${c.id}">${c.label}</button>`).join('')}</div>`;
+
+        if (filtered.length === 0) {
+            this.els.upgradesList.innerHTML = chipsHtml + `<p style="color:var(--text-dim);text-align:center;padding:16px;">Keine Upgrades für Filter "${chipDefs.find(c=>c.id===activeFilter)?.label}"</p>`;
+            for (const ch of this.els.upgradesList.querySelectorAll('[data-upg-filter]')) {
+                ch.addEventListener('click', () => { this._saveUpgradeFilter(ch.dataset.upgFilter); this.renderUpgrades(); haptic(8); });
+            }
+            return;
+        }
+
+        let categoriesHtml = '';
+        for (const cat of categories) {
+            const collapsed = this._isCollapsed('upg', cat.id);
+            const ownedCnt = cat.items.filter(s=>s.purchased).length;
+            const availCnt = cat.items.filter(s=>!s.purchased && s.unlocked).length;
+            const badge = `${cat.items.length} · ${ownedCnt}✓ ${availCnt} offen`;
+            // Per-Kategorie sort behalten
+            const itemsHtml = cat.items.map(s => {
+                const locked = !s.unlocked;
+                const owned = s.purchased;
+                return `
+                <div class="item ${owned ? 'upgrade-owned' : ''} ${s.canAfford && !owned ? 'can-afford' : ''}" style="${locked ? 'opacity:0.45' : ''}">
+                    <div class="item-icon">${s.def.icon}</div>
+                    <div class="item-info">
+                        <div class="item-name">${s.def.name} ${owned ? '✓' : ''} ${locked ? '🔒' : ''}</div>
+                        <div class="item-desc">${s.def.description}</div>
+                        <div class="item-meta">${owned ? 'Gekauft' : locked ? `Benötigt: ${GameConfig.getUpgrade(s.def.requires)?.name ?? s.def.requires}` : `${Formatter.formatBits(s.def.cost)} Bits`}</div>
+                    </div>
+                    <button class="btn-buy" data-upgrade="${s.def.id}" ${owned || locked || !s.canAfford ? 'disabled' : ''}>
+                        ${owned ? 'Erworben' : locked ? 'Gesperrt' : 'Kaufen'}
+                    </button>
+                </div>`;
+            }).join('');
+            const body = cat.items.length ? `<div class="category-grid">${itemsHtml}</div>` : `<div class="category-grid" style="padding:12px;color:var(--text-dim);font-size:0.78rem;text-align:center;">Keine Einträge</div>`;
+            categoriesHtml += `
+            <section class="category ${collapsed ? 'collapsed' : ''}" data-upg-cat="${cat.id}">
+                <div class="category-header" data-upg-toggle="${cat.id}">
+                    <span class="cat-icon">${cat.icon}</span>
+                    <div class="cat-info">
+                        <div class="cat-name">${cat.name}</div>
+                        <div class="cat-desc">${cat.desc}</div>
+                    </div>
+                    <span class="cat-badge">${badge}</span>
+                    <span class="cat-toggle">▼</span>
                 </div>
-                <button class="btn-buy" data-upgrade="${s.def.id}" ${owned || locked || !s.canAfford ? 'disabled' : ''}>
-                    ${owned ? 'Erworben' : locked ? 'Gesperrt' : 'Kaufen'}
-                </button>
-            </div>`;
-        }).join('');
+                ${body}
+            </section>`;
+        }
 
+        this.els.upgradesList.innerHTML = chipsHtml + categoriesHtml;
+
+        for (const ch of this.els.upgradesList.querySelectorAll('[data-upg-filter]')) {
+            ch.addEventListener('click', () => { this._saveUpgradeFilter(ch.dataset.upgFilter); this.renderUpgrades(); haptic(8); });
+        }
+        for (const hdr of this.els.upgradesList.querySelectorAll('[data-upg-toggle]')) {
+            hdr.addEventListener('click', () => {
+                this._toggleCollapsed('upg', hdr.dataset.upgToggle);
+                const sec = hdr.closest('.category');
+                if (sec) sec.classList.toggle('collapsed');
+                haptic(8);
+            });
+        }
         for (const btn of this.els.upgradesList.querySelectorAll('[data-upgrade]')) {
             btn.addEventListener('click', () => {
                 const ok = this.game.upgrades.buy(btn.dataset.upgrade);
