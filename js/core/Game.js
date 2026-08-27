@@ -285,4 +285,28 @@ export class Game {
             clickValue: this.click.getClickValue(),
         };
     }
+
+    /** Berechnet die eigene Position in der NPC-Rangliste (1-20). */
+    getNpcLeaderboardPosition(npcData = []) {
+        const own = this.getState();
+        const leaderboard = npcData.length > 0 ? npcData : (GameConfig.npcLeaderboard || []);
+        // Spieler mit mehr Prestiges weiter oben; bei Gleichstand bits als Tie-Breaker
+        const sorted = [...leaderboard].sort((a, b) => {
+            if (b.prestigest !== a.prestigest) return b.prestigest - a.prestigest;
+            return b.totalBits - a.totalBits;
+        });
+        // Eigene Position ermitteln (1-indexiert)
+        let position = sorted.length + 1; // falls schlechter als alle NPCs
+        for (let i = 0; i < sorted.length; i++) {
+            // Spieler schlägt NPC i, wenn own.prestiges > NPC.prestigest
+            // oder same prestigest aber own.totalBits > NPC.totalBits
+            if (own.prestige.totalPrestiges > sorted[i].prestigest ||
+                (own.prestige.totalPrestiges === sorted[i].prestigest &&
+                 own.economy.totalEarned > sorted[i].totalBits)) {
+                position = i + 1;
+                break;
+            }
+        }
+        return position;
+    }
 }

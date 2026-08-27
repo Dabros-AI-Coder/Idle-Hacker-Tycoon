@@ -16,6 +16,9 @@ game.updateManager = updateManager;
 
 game.init();
 
+// NPC-Leaderboard initial rendern
+renderNpcLeaderboard();
+
 // Expose für Debugging (nur dev)
 window.__IDLE_HACKER__ = { game, ui, menu, updateManager };
 
@@ -82,3 +85,88 @@ document.addEventListener('dragstart', blockIfStandalone);
 document.addEventListener('copy', blockIfStandalone);
 document.addEventListener('cut', blockIfStandalone);
 // Langdruck-Menu auf iOS wird via CSS -webkit-touch-callout unterdrückt
+
+/** 19 fiktive NPC-Spieler als Motivation für Single-Player */
+const npcLeaderboard = [
+    { name: 'GhostWriter', prestigest: 3, totalBits: 500000, level: 'Elite Hacker' },
+    { name: 'ShadowCode', prestigest: 5, totalBits: 1500000, level: 'Root God' },
+    { name: 'MatrixLord', prestigest: 8, totalBits: 5000000, level: 'Singularity' },
+    { name: 'NeonHacker', prestigest: 2, totalBits: 300000, level: 'Cyber Ghost' },
+    { name: 'ByteHunter', prestigest: 6, totalBits: 2500000, level: 'Root God' },
+    { name: 'DataGhost', prestigest: 4, totalBits: 800000, level: 'Elite Hacker' },
+    { name: 'ScriptKiller', prestigest: 1, totalBits: 100000, level: 'Script Kiddie' },
+    { name: 'FirewallBreaker', prestigest: 7, totalBits: 8000000, level: 'Singularity' },
+    { name: 'NetNinja', prestigest: 3, totalBits: 600000, level: 'Elite Hacker' },
+    { name: 'CodePhantom', prestigest: 9, totalBits: 12000000, level: 'Singularity' },
+    { name: 'LogicLoop', prestigest: 2, totalBits: 400000, level: 'Junior Hacker' },
+    { name: 'CacheCleaner', prestigest: 5, totalBits: 2000000, level: 'Root God' },
+    { name: 'AlgoExpert', prestigest: 8, totalBits: 10000000, level: 'Singularity' },
+    { name: 'TechWizard', prestigest: 4, totalBits: 900000, level: 'Elite Hacker' },
+    { name: 'BinarySamurai', prestigest: 6, totalBits: 3500000, level: 'Root God' },
+    { name: 'QuantumFool', prestigest: 2, totalBits: 250000, level: 'Hacker' },
+    { name: 'PacketPusher', prestigest: 7, totalBits: 6500000, level: 'Singularity' },
+    { name: 'RouterRebel', prestigest: 3, totalBits: 700000, level: 'Elite Hacker' },
+];
+
+/** Rendert das NPC-Leaderboard in die Stats-Seite. */
+function renderNpcLeaderboard() {
+    const position = game.getNpcLeaderboardPosition(npcLeaderboard);
+    const listEl = document.getElementById('npc-list');
+    const ownEl = document.getElementById('own-npc-rank');
+
+    // Liste leeren & NPCs einfügen
+    listEl.innerHTML = '';
+    npcLeaderboard.forEach((npc, idx) => {
+        const li = document.createElement('li');
+        li.style.cssText = 'padding: 0.25rem 0; border-bottom: 1px solid #2a2a3a;';
+        li.innerHTML = `<span style="width: 50%;">${idx + 1}. ${npc.name}</span>
+                        <span style="width: 20%; text-align: right;">#${npc.prestigest}</span>
+                        <span style="width: 30%; text-align: right;">${Formatter.formatFull(npc.totalBits)}</span>`;
+        listEl.appendChild(li);
+    });
+
+    // Eigene Position setzen (1-20)
+    ownEl.textContent = position;
+}
+
+// Optional: Position aktualisieren, wenn sich Stats ändern (hier einfach beim Focus-Event)
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        renderNpcLeaderboard();
+    }
+});
+
+/** Exposiert an game-Objekt für potentialen späteren Zugriff */
+game.npcLeaderboard = npcLeaderboard;
+
+/** Exposiert an window für Debugging */
+window.__IDLE_HACKER__.npcLeaderboard = npcLeaderboard;
+
+/** Rendert das NPC-Leaderboard in die Stats-Seite. */
+function renderNpcLeaderboard() {
+    const { npcLeaderboard } = GameConfig;
+    const position = game.getNpcLeaderboardPosition();
+    const listEl = document.getElementById('npc-list');
+    const ownEl = document.getElementById('own-npc-rank');
+
+    // Liste leeren & NPCs einfügen
+    listEl.innerHTML = '';
+    npcLeaderboard.forEach((npc, idx) => {
+        const li = document.createElement('li');
+        li.style.cssText = 'padding: 0.25rem 0; border-bottom: 1px solid #2a2a3a;';
+        li.innerHTML = `<span style="width: 50%;">${idx + 1}. ${npc.name}</span>
+                        <span style="width: 20%; text-align: right;">#${npc.prestigest}</span>
+                        <span style="width: 30%; text-align: right;">${Formatter.formatFull(npc.totalBits)}</span>`;
+        listEl.appendChild(li);
+    });
+
+    // Eigene Position setzen (1-20)
+    ownEl.textContent = position;
+}
+
+// Optional: Position aktualisieren, wenn sich Stats ändern (hier einfach beim Focus-Event)
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        renderNpcLeaderboard();
+    }
+});
