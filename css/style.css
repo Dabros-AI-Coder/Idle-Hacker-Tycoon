@@ -619,6 +619,52 @@ html[data-theme="auto"] #crt-overlay {
 .filter-chip.active { background: var(--accent); color: #0a0e1a; border-color: var(--accent); box-shadow: 0 2px 8px rgba(var(--accent-rgb),0.3); }
 .filter-chip:hover { border-color: rgba(255,255,255,0.18); color: var(--text); }
 
+/* === CATEGORY OVERVIEW (2er Raster) === */
+.category-overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.category-overview-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.08s, box-shadow 0.15s;
+    position: relative;
+    display: flex; flex-direction: column; gap: 8px;
+    min-height: 118px;
+}
+.category-overview-card:hover { border-color: rgba(var(--accent-rgb),0.35); transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
+.category-overview-card:active { transform: scale(0.97); }
+.category-overview-card .ov-icon { font-size: 1.7rem; line-height: 1; }
+.category-overview-card .ov-name { font-size: 0.92rem; font-weight: 800; letter-spacing: 0.03em; }
+.category-overview-card .ov-desc { font-size: 0.68rem; color: var(--text-dim); line-height: 1.3; }
+.category-overview-card .ov-meta {
+    margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    font-size: 0.68rem; color: var(--text-dim);
+}
+.category-overview-card .ov-badge {
+    background: rgba(var(--accent-rgb),0.12); color: var(--accent);
+    border: 1px solid rgba(var(--accent-rgb),0.25); border-radius: 99px;
+    padding: 3px 8px; font-weight: 800; font-variant-numeric: tabular-nums;
+}
+.category-overview-card .ov-arrow { color: var(--text-dim); font-size: 0.78rem; opacity: 0.7; }
+
+/* === CATEGORY OVERLAY === */
+.modal-overlay.category-overlay { z-index: 210; backdrop-filter: blur(8px) saturate(1.05); }
+.modal.category-modal { max-width: 560px; width: min(96vw, 560px); max-height: 84vh; overflow: hidden; display: flex; flex-direction: column; padding: 0; }
+.category-modal-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-card);
+    position: sticky; top: 0; z-index: 1;
+}
+.category-modal-header .mh-icon { font-size: 1.5rem; }
+.category-modal-header .mh-info { flex: 1; min-width: 0; }
+.category-modal-header .mh-name { font-size: 0.95rem; font-weight: 800; }
+.category-modal-header .mh-desc { font-size: 0.7rem; color: var(--text-dim); }
+.category-modal-body { padding: 12px; overflow: auto; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.category-modal-footer { padding: 10px 12px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; }
+
 /* Upgrade items specific */
 .item.upgrade-owned { opacity: 0.55; }
 .item.upgrade-owned .btn-buy { background: #1a2e22; color: var(--accent); }

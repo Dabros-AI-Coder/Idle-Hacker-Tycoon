@@ -756,7 +756,7 @@ export class UIManager {
             ${this.bulkOptions.map(opt => `<button class="bulk-btn ${String(this.bulkAmount)===String(opt)?'active':''}" data-bulk="${opt}">x${opt}</button>`).join('')}
         </div>`;
 
-        // --- Generator Items gruppiert nach Tier (kollabierbar) ---
+        // --- Generator Übersicht 2er Raster (Klick → Overlay) ---
         const catMap = new Map();
         for (const c of (GameConfig.generatorCategories || [])) catMap.set(c.id, { ...c, items: [] });
         const uncategorized = [];
@@ -770,52 +770,24 @@ export class UIManager {
         const categories = [...catMap.values()].filter(c => c.items.length > 0);
         if (uncategorized.length) categories.push({ id: 'other', name: 'Sonstige', icon: '📦', desc: '', items: uncategorized });
 
-        let categoriesHtml = '';
-        for (const cat of categories) {
+        const overviewHtml = `<div class="category-overview-grid">${categories.map(cat => {
             const ownedInCat = cat.items.reduce((a, s) => a + s.owned, 0);
             const perSecInCat = cat.items.reduce((a, s) => a + s.perSec, 0);
-            const collapsed = this._isCollapsed('gen', cat.id);
-            const badge = `${ownedInCat}× · ${Formatter.formatBits(perSecInCat)}/s`;
-            const itemsHtml = cat.items.map(s => {
-                const share = totalPerSec > 0 ? (s.perSec / totalPerSec) * 100 : 0;
-                const tierLabel = `T${s._idx + 1}`;
-                const roi = s.def.basePerSec > 0 ? (s.cost / (s.def.basePerSec * (this.game.automation.genMultipliers.get(s.def.id) || 1) * this.game.automation.globalMultiplier)) : 0;
-                const roiText = s.owned === 0 && s.def.basePerSec > 0 ? ` · ROI ~${Math.ceil(roi)}s` : '';
-                const isMax = this.bulkAmount === 'max';
-                const bulkAmt = isMax ? this.game.automation.getMaxAffordable(s.def.id) : Number(this.bulkAmount);
-                const bulkCost = isMax ? this.game.automation.getBulkCost(s.def.id, bulkAmt) : this.game.automation.getBulkCost(s.def.id, bulkAmt);
-                const canAffordBulk = bulkAmt > 0 && this.game.economy.bits >= bulkCost;
-                const btnLabel = isMax ? (bulkAmt > 0 ? `Max x${bulkAmt} · ${Formatter.formatBits(bulkCost)}` : 'Max') : `${Formatter.formatBits(bulkCost)} ${bulkAmt>1?`x${bulkAmt}`:''}`;
-                return `
-                <div class="item ${canAffordBulk ? 'can-afford' : ''}" data-id="${s.def.id}">
-                    <div class="item-icon">${s.def.icon}</div>
-                    <div class="item-info">
-                        <div class="item-name">${s.def.name}<span class="item-tier">${tierLabel}</span></div>
-                        <div class="item-desc">${s.def.description}</div>
-                        <div class="item-meta">${Formatter.formatPerSec(s.def.basePerSec)} Bits/sec pro Einheit${roiText}</div>
-                        <div class="item-footer"><span class="share">${share.toFixed(1)}% Output</span> · ${Formatter.formatBits(s.perSec)} /sec total</div>
-                        <div class="item-progress" title="Anteil am Gesamt-Output"><div class="item-progress-fill" style="width:${share.toFixed(1)}%"></div></div>
-                    </div>
-                    <div class="item-owned">x${s.owned}</div>
-                    <button class="btn-buy" data-buy="${s.def.id}" ${canAffordBulk ? '' : 'disabled'}>
-                        ${btnLabel}
-                    </button>
-                </div>`;
-            }).join('');
-            categoriesHtml += `
-            <section class="category ${collapsed ? 'collapsed' : ''}" data-cat="${cat.id}">
-                <div class="category-header" data-cat-toggle="${cat.id}">
-                    <span class="cat-icon">${cat.icon}</span>
-                    <div class="cat-info">
-                        <div class="cat-name">${cat.name}</div>
-                        <div class="cat-desc">${cat.desc}</div>
-                    </div>
-                    <span class="cat-badge">${badge}</span>
-                    <span class="cat-toggle">▼</span>
+            const ownedTypes = cat.items.filter(s=>s.owned>0).length;
+            const totalTypes = cat.items.length;
+            const pct = totalTypes ? Math.round(ownedTypes/totalTypes*100) : 0;
+            return `<div class="category-overview-card" data-gen-cat="${cat.id}">
+                <span class="ov-icon">${cat.icon}</span>
+                <div class="ov-name">${cat.name}</div>
+                <div class="ov-desc">${cat.desc}</div>
+                <div class="ov-meta">
+                    <span>${ownedTypes}/${totalTypes} aktiv · ${ownedInCat}×</span>
+                    <span class="ov-badge">${Formatter.formatBits(perSecInCat)}/s</span>
                 </div>
-                <div class="category-grid">${itemsHtml}</div>
-            </section>`;
-        }
+                <div class="item-progress" style="margin-top:4px;"><div class="item-progress-fill" style="width:${pct}%"></div></div>
+                <span class="ov-arrow">↗ Öffnen</span>
+            </div>`;
+        }).join('')}</div>`;
 
         const emptyHint = totalOwned === 0 ? `<div class="server-empty">🛰️ <strong>Dein Netzwerk ist offline.</strong><br>Starte mit <strong>Script Kiddie</strong> (15 Bits) — der erste Knoten öffnet den Idle-Ertrag.</div>` : '';
 
@@ -835,7 +807,7 @@ export class UIManager {
             </div>
             ${bulkHtml}
             ${emptyHint}
-            ${categoriesHtml}
+            ${overviewHtml}
         `;
 
         for (const btn of this.els.generatorsList.querySelectorAll('[data-bulk]')) {
@@ -845,25 +817,195 @@ export class UIManager {
                 haptic(10); audio.click();
             });
         }
-        for (const hdr of this.els.generatorsList.querySelectorAll('[data-cat-toggle]')) {
-            hdr.addEventListener('click', () => {
-                this._toggleCollapsed('gen', hdr.dataset.catToggle);
-                const sec = hdr.closest('.category');
-                if (sec) sec.classList.toggle('collapsed');
-                haptic(8);
-            });
-        }
-        for (const btn of this.els.generatorsList.querySelectorAll('[data-buy]')) {
-            btn.addEventListener('click', () => {
-                const id = btn.dataset.buy;
-                let bought = 0;
-                if (this.bulkAmount === 'max') bought = this.game.automation.buyBulk(id, 'max');
-                else bought = this.game.automation.buyBulk(id, Number(this.bulkAmount));
-                if (!bought) { this.toast('Nicht genug Bits!'); audio.buyFail(); }
-                else { haptic(10); audio.buy(); }
+        for (const card of this.els.generatorsList.querySelectorAll('[data-gen-cat]')) {
+            card.addEventListener('click', () => {
+                this._showGeneratorCategory(card.dataset.genCat);
+                haptic(12); audio.click();
             });
         }
         this.renderEconomy();
+    }
+
+    _showGeneratorCategory(catId) {
+        const cat = (GameConfig.generatorCategories || []).find(c => c.id === catId);
+        if (!cat) return;
+        const allStates = this.game.automation.getAllStates();
+        const totalPerSec = this.game.automation.getTotalPerSec();
+        const catStates = allStates.filter(s => (s.def.category || 'tier1') === catId);
+        // bulk selector inside overlay mirrors global bulkAmount
+        const bulkSel = `<div class="bulk-selector" style="margin:0 0 10px;">
+            <span>Anzahl:</span>
+            ${this.bulkOptions.map(opt => `<button class="bulk-btn ${String(this.bulkAmount)===String(opt)?'active':''}" data-obulk="${opt}">x${opt}</button>`).join('')}
+        </div>`;
+        const buildItems = () => catStates.map(s => {
+            const share = totalPerSec > 0 ? (s.perSec / totalPerSec) * 100 : 0;
+            const idx = allStates.findIndex(x=>x.def.id===s.def.id);
+            const tierLabel = `T${idx+1}`;
+            const roi = s.def.basePerSec > 0 ? (s.cost / (s.def.basePerSec * (this.game.automation.genMultipliers.get(s.def.id) || 1) * this.game.automation.globalMultiplier)) : 0;
+            const roiText = s.owned === 0 && s.def.basePerSec > 0 ? ` · ROI ~${Math.ceil(roi)}s` : '';
+            const isMax = this.bulkAmount === 'max';
+            const bulkAmt = isMax ? this.game.automation.getMaxAffordable(s.def.id) : Number(this.bulkAmount);
+            const bulkCost = isMax ? this.game.automation.getBulkCost(s.def.id, bulkAmt) : this.game.automation.getBulkCost(s.def.id, bulkAmt);
+            const canAffordBulk = bulkAmt > 0 && this.game.economy.bits >= bulkCost;
+            const btnLabel = isMax ? (bulkAmt > 0 ? `Max x${bulkAmt} · ${Formatter.formatBits(bulkCost)}` : 'Max') : `${Formatter.formatBits(bulkCost)} ${bulkAmt>1?`x${bulkAmt}`:''}`;
+            return `
+            <div class="item ${canAffordBulk ? 'can-afford' : ''}" data-id="${s.def.id}">
+                <div class="item-icon">${s.def.icon}</div>
+                <div class="item-info">
+                    <div class="item-name">${s.def.name}<span class="item-tier">${tierLabel}</span></div>
+                    <div class="item-desc">${s.def.description}</div>
+                    <div class="item-meta">${Formatter.formatPerSec(s.def.basePerSec)} Bits/sec pro Einheit${roiText}</div>
+                    <div class="item-footer"><span class="share">${share.toFixed(1)}% Output</span> · ${Formatter.formatBits(s.perSec)} /sec total</div>
+                    <div class="item-progress" title="Anteil am Gesamt-Output"><div class="item-progress-fill" style="width:${share.toFixed(1)}%"></div></div>
+                </div>
+                <div class="item-owned">x${s.owned}</div>
+                <button class="btn-buy" data-buy="${s.def.id}" ${canAffordBulk ? '' : 'disabled'}>${btnLabel}</button>
+            </div>`;
+        }).join('');
+
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay category-overlay';
+        overlay.innerHTML = `
+            <div class="modal category-modal">
+                <div class="category-modal-header">
+                    <span class="mh-icon">${cat.icon}</span>
+                    <div class="mh-info">
+                        <div class="mh-name">${cat.name}</div>
+                        <div class="mh-desc">${cat.desc} · ${catStates.length} Typen</div>
+                    </div>
+                    <button class="btn-modal secondary" data-action="close" style="flex:0; min-width:44px;">✕</button>
+                </div>
+                <div class="category-modal-body">
+                    ${bulkSel}
+                    <div class="list" data-overlay-list>${buildItems()}</div>
+                </div>
+                <div class="category-modal-footer">
+                    <button class="btn-modal secondary" data-action="close2">Schließen</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        const close = () => { overlay.remove(); this.renderGenerators(); };
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+        overlay.querySelectorAll('[data-action="close"],[data-action="close2"]').forEach(b=>b.addEventListener('click', close));
+
+        const refresh = () => {
+            const list = overlay.querySelector('[data-overlay-list]');
+            if (!list) return;
+            // recompute states
+            const fresh = this.game.automation.getAllStates().filter(s => (s.def.category || 'tier1') === catId);
+            // update catStates reference for next refresh
+            catStates.length = 0; fresh.forEach(s=>catStates.push(s));
+            list.innerHTML = buildItems();
+            // rebind buys
+            bindBuys();
+            // update bulk active
+            overlay.querySelectorAll('[data-obulk]').forEach(b=> b.classList.toggle('active', String(this.bulkAmount)===String(b.dataset.obulk)));
+            this.renderEconomy();
+        };
+        const bindBuys = () => {
+            overlay.querySelectorAll('[data-buy]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.dataset.buy;
+                    let bought = 0;
+                    if (this.bulkAmount === 'max') bought = this.game.automation.buyBulk(id, 'max');
+                    else bought = this.game.automation.buyBulk(id, Number(this.bulkAmount));
+                    if (!bought) { this.toast('Nicht genug Bits!'); audio.buyFail(); }
+                    else { haptic(10); audio.buy(); refresh(); }
+                });
+            });
+        };
+        overlay.querySelectorAll('[data-obulk]').forEach(b=>{
+            b.addEventListener('click', ()=>{ this.bulkAmount = b.dataset.obulk==='max' ? 'max' : Number(b.dataset.obulk); refresh(); haptic(8); });
+        });
+        bindBuys();
+        // ESC closes
+        const esc = (e)=>{ if(e.key==='Escape'){ close(); document.removeEventListener('keydown', esc); } };
+        document.addEventListener('keydown', esc);
+    }
+
+    _showUpgradeCategory(catId) {
+        const cat = (GameConfig.upgradeCategories || []).find(c=>c.id===catId);
+        if (!cat) return;
+        const allStates = this.game.upgrades.getAllStates();
+        // respect current filter
+        const filter = this.upgradeFilter || 'all';
+        const filterFn = (s) => {
+            if (filter==='all') return true;
+            if (filter==='affordable') return s.canAfford && !s.purchased && s.unlocked;
+            if (filter==='purchased') return s.purchased;
+            if (filter==='locked') return !s.unlocked;
+            return true;
+        };
+        let catStates = allStates.filter(s=> (s.def.category||'server')===catId).filter(filterFn);
+        catStates.sort((a,b)=>{
+            if (a.purchased!==b.purchased) return a.purchased?1:-1;
+            if (a.unlocked!==b.unlocked) return a.unlocked?-1:1;
+            if (a.canAfford!==b.canAfford) return a.canAfford?-1:1;
+            return 0;
+        });
+        const buildItems = () => catStates.map(s=>{
+            const locked = !s.unlocked;
+            const owned = s.purchased;
+            return `
+            <div class="item ${owned ? 'upgrade-owned' : ''} ${s.canAfford && !owned ? 'can-afford' : ''}" style="${locked ? 'opacity:0.45' : ''}">
+                <div class="item-icon">${s.def.icon}</div>
+                <div class="item-info">
+                    <div class="item-name">${s.def.name} ${owned ? '✓' : ''} ${locked ? '🔒' : ''}</div>
+                    <div class="item-desc">${s.def.description}</div>
+                    <div class="item-meta">${owned ? 'Gekauft' : locked ? `Benötigt: ${GameConfig.getUpgrade(s.def.requires)?.name ?? s.def.requires}` : `${Formatter.formatBits(s.def.cost)} Bits`}</div>
+                </div>
+                <button class="btn-buy" data-upgrade="${s.def.id}" ${owned || locked || !s.canAfford ? 'disabled' : ''}>${owned ? 'Erworben' : locked ? 'Gesperrt' : 'Kaufen'}</button>
+            </div>`;
+        }).join('') || `<p style="color:var(--text-dim);text-align:center;padding:16px;">Keine Upgrades für Filter</p>`;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay category-overlay';
+        overlay.innerHTML = `
+            <div class="modal category-modal">
+                <div class="category-modal-header">
+                    <span class="mh-icon">${cat.icon}</span>
+                    <div class="mh-info">
+                        <div class="mh-name">${cat.name}</div>
+                        <div class="mh-desc">${cat.desc} · ${catStates.length} Upgrades</div>
+                    </div>
+                    <button class="btn-modal secondary" data-action="close" style="flex:0; min-width:44px;">✕</button>
+                </div>
+                <div class="category-modal-body">
+                    <div class="list" data-overlay-list>${buildItems()}</div>
+                </div>
+                <div class="category-modal-footer">
+                    <button class="btn-modal secondary" data-action="close2">Schließen</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        const close = () => { overlay.remove(); this.renderUpgrades(); };
+        overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close(); });
+        overlay.querySelectorAll('[data-action="close"],[data-action="close2"]').forEach(b=>b.addEventListener('click', close));
+        const bindBuys = ()=>{
+            overlay.querySelectorAll('[data-upgrade]').forEach(btn=>{
+                btn.addEventListener('click', ()=>{
+                    const ok=this.game.upgrades.buy(btn.dataset.upgrade);
+                    if(ok){ this.toast('Upgrade erworben!'); haptic(15); audio.buy(); 
+                        // refresh filtered states
+                        const freshAll=this.game.upgrades.getAllStates().filter(s=> (s.def.category||'server')===catId).filter(filterFn);
+                        freshAll.sort((a,b)=>{
+                            if (a.purchased!==b.purchased) return a.purchased?1:-1;
+                            if (a.unlocked!==b.unlocked) return a.unlocked?-1:1;
+                            if (a.canAfford!==b.canAfford) return a.canAfford?-1:1;
+                            return 0;
+                        });
+                        catStates.length=0; freshAll.forEach(s=>catStates.push(s));
+                        overlay.querySelector('[data-overlay-list]').innerHTML=buildItems();
+                        bindBuys();
+                    } else audio.buyFail();
+                });
+            });
+        };
+        bindBuys();
+        const esc=(e)=>{ if(e.key==='Escape'){ close(); document.removeEventListener('keydown',esc); } };
+        document.addEventListener('keydown', esc);
     }
 
     renderUpgrades() {
@@ -919,66 +1061,37 @@ export class UIManager {
             return;
         }
 
-        let categoriesHtml = '';
-        for (const cat of categories) {
-            const collapsed = this._isCollapsed('upg', cat.id);
+        // --- Upgrade Übersicht 2er Raster (Klick → Overlay) ---
+        const overviewHtml = `<div class="category-overview-grid">${categories.map(cat => {
             const ownedCnt = cat.items.filter(s=>s.purchased).length;
             const availCnt = cat.items.filter(s=>!s.purchased && s.unlocked).length;
-            const badge = `${cat.items.length} · ${ownedCnt}✓ ${availCnt} offen`;
-            // Per-Kategorie sort behalten
-            const itemsHtml = cat.items.map(s => {
-                const locked = !s.unlocked;
-                const owned = s.purchased;
-                return `
-                <div class="item ${owned ? 'upgrade-owned' : ''} ${s.canAfford && !owned ? 'can-afford' : ''}" style="${locked ? 'opacity:0.45' : ''}">
-                    <div class="item-icon">${s.def.icon}</div>
-                    <div class="item-info">
-                        <div class="item-name">${s.def.name} ${owned ? '✓' : ''} ${locked ? '🔒' : ''}</div>
-                        <div class="item-desc">${s.def.description}</div>
-                        <div class="item-meta">${owned ? 'Gekauft' : locked ? `Benötigt: ${GameConfig.getUpgrade(s.def.requires)?.name ?? s.def.requires}` : `${Formatter.formatBits(s.def.cost)} Bits`}</div>
-                    </div>
-                    <button class="btn-buy" data-upgrade="${s.def.id}" ${owned || locked || !s.canAfford ? 'disabled' : ''}>
-                        ${owned ? 'Erworben' : locked ? 'Gesperrt' : 'Kaufen'}
-                    </button>
-                </div>`;
-            }).join('');
-            const body = cat.items.length ? `<div class="category-grid">${itemsHtml}</div>` : `<div class="category-grid" style="padding:12px;color:var(--text-dim);font-size:0.78rem;text-align:center;">Keine Einträge</div>`;
-            categoriesHtml += `
-            <section class="category ${collapsed ? 'collapsed' : ''}" data-upg-cat="${cat.id}">
-                <div class="category-header" data-upg-toggle="${cat.id}">
-                    <span class="cat-icon">${cat.icon}</span>
-                    <div class="cat-info">
-                        <div class="cat-name">${cat.name}</div>
-                        <div class="cat-desc">${cat.desc}</div>
-                    </div>
-                    <span class="cat-badge">${badge}</span>
-                    <span class="cat-toggle">▼</span>
+            const totalCnt = GameConfig.upgrades.filter(u=> (u.category||'server')===cat.id).length;
+            const filteredCnt = cat.items.length;
+            const pct = totalCnt ? Math.round(ownedCnt/totalCnt*100) : 0;
+            const badge = `${ownedCnt}/${totalCnt}✓ · ${availCnt} offen`;
+            const sub = filteredCnt !== totalCnt ? `Filter: ${filteredCnt}/${totalCnt}` : cat.desc;
+            return `<div class="category-overview-card" data-upg-cat="${cat.id}">
+                <span class="ov-icon">${cat.icon}</span>
+                <div class="ov-name">${cat.name}</div>
+                <div class="ov-desc">${sub}</div>
+                <div class="ov-meta">
+                    <span>${ownedCnt}✓ · ${totalCnt} total</span>
+                    <span class="ov-badge">${badge}</span>
                 </div>
-                ${body}
-            </section>`;
-        }
+                <div class="item-progress" style="margin-top:4px;"><div class="item-progress-fill" style="width:${pct}%"></div></div>
+                <span class="ov-arrow">↗ Öffnen</span>
+            </div>`;
+        }).join('')}</div>`;
 
-        this.els.upgradesList.innerHTML = chipsHtml + categoriesHtml;
+        this.els.upgradesList.innerHTML = chipsHtml + overviewHtml;
 
         for (const ch of this.els.upgradesList.querySelectorAll('[data-upg-filter]')) {
             ch.addEventListener('click', () => { this._saveUpgradeFilter(ch.dataset.upgFilter); this.renderUpgrades(); haptic(8); });
         }
-        for (const hdr of this.els.upgradesList.querySelectorAll('[data-upg-toggle]')) {
-            hdr.addEventListener('click', () => {
-                this._toggleCollapsed('upg', hdr.dataset.upgToggle);
-                const sec = hdr.closest('.category');
-                if (sec) sec.classList.toggle('collapsed');
-                haptic(8);
-            });
-        }
-        for (const btn of this.els.upgradesList.querySelectorAll('[data-upgrade]')) {
-            btn.addEventListener('click', () => {
-                const ok = this.game.upgrades.buy(btn.dataset.upgrade);
-                if (ok) {
-                    this.toast('Upgrade erworben!');
-                    haptic(15);
-                    audio.buy();
-                } else audio.buyFail();
+        for (const card of this.els.upgradesList.querySelectorAll('[data-upg-cat]')) {
+            card.addEventListener('click', () => {
+                this._showUpgradeCategory(card.dataset.upgCat);
+                haptic(12); audio.click();
             });
         }
     }

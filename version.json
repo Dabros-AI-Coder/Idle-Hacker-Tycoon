@@ -1,5 +1,5 @@
 {
-  "version": "0.11.0",
+  "version": "0.12.0",
   "build": 20260827,
-  "notes": "Kategorien: 4 Generator-Tiers (Einstieg/Mittel/Hoch/Endgame) + 4 Upgrade-Gruppen (Klick/Server/Global/Effizienz) kollabierbar + Filterchips"
+  "notes": "Overlay-Kategorien: 2er-Raster nur Kategorien, Unterpunkte im eigenen Overlay (statt Dropdown/Akkordeon)"
 }
