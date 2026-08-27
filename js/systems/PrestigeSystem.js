@@ -24,7 +24,14 @@ export class PrestigeSystem {
         });
     }
 
-    getThreshold() { return GameConfig.prestige.threshold; }
+    /**
+     * Schwelle wächst mit jedem Prestige (sonst wäre sie nach ein paar
+     * Runs mit permanenten Boni in Sekunden erreichbar). Bei
+     * totalPrestiges=0 identisch zum bisherigen fixen Wert.
+     */
+    getThreshold() {
+        return Math.floor(GameConfig.prestige.threshold * Math.pow(GameConfig.prestige.thresholdGrowth, this.totalPrestiges));
+    }
     getGainDivisor() { return GameConfig.prestige.gainDivisor; }
     getMultiplierPerPoint() { return GameConfig.prestige.multiplierPerPoint; }
 
@@ -36,6 +43,15 @@ export class PrestigeSystem {
     /** Alle bereits aktivierten Meilensteine */
     getActiveMilestones() {
         return GameConfig.prestige.milestones.filter(m => this.totalPrestiges >= m.prestiges);
+    }
+
+    /** Produkt aller 'global_mult'-Effekte aktivierter Meilensteine (zentrale Quelle für Click+Automation). */
+    getMilestoneMultiplier() {
+        let mult = 1;
+        for (const m of this.getActiveMilestones()) {
+            if (m.effect.type === 'global_mult') mult *= m.effect.value;
+        }
+        return mult;
     }
 
     /** Nächster noch nicht erreichter Meilenstein (oder null) */
@@ -75,8 +91,9 @@ export class PrestigeSystem {
         this.totalChipsEarned += gain;
         this.totalPrestiges += 1;
         const multiplier = this.getMultiplier();
-        this.bus.emit('prestige:committed', { gain, points: this.points, chips: this.chips, multiplier, totalPrestiges: this.totalPrestiges });
-        this.bus.emit('prestige:changed', { points: this.points, multiplier, pendingGain: 0, totalPrestiges: this.totalPrestiges });
+        const milestoneMultiplier = this.getMilestoneMultiplier();
+        this.bus.emit('prestige:committed', { gain, points: this.points, chips: this.chips, multiplier, milestoneMultiplier, totalPrestiges: this.totalPrestiges });
+        this.bus.emit('prestige:changed', { points: this.points, multiplier, milestoneMultiplier, pendingGain: 0, totalPrestiges: this.totalPrestiges });
         return { gain, points: this.points, multiplier };
     }
 
@@ -105,7 +122,7 @@ export class PrestigeSystem {
         this.chips = Number(data.chips) || 0;
         this.totalChipsEarned = Number(data.totalChipsEarned) || 0;
         // Nach Load Multiplier broadcasten damit Click/Automation ihn übernehmen
-        this.bus.emit('prestige:changed', { points: this.points, multiplier: this.getMultiplier(), pendingGain: this.getPendingGain(), totalPrestiges: this.totalPrestiges });
+        this.bus.emit('prestige:changed', { points: this.points, multiplier: this.getMultiplier(), milestoneMultiplier: this.getMilestoneMultiplier(), pendingGain: this.getPendingGain(), totalPrestiges: this.totalPrestiges });
     }
 
     resetHard() {
@@ -114,6 +131,6 @@ export class PrestigeSystem {
         this.totalPrestiges = 0;
         this.chips = 0;
         this.totalChipsEarned = 0;
-        this.bus.emit('prestige:changed', { points: 0, multiplier: 1, pendingGain: 0, totalPrestiges: 0 });
+        this.bus.emit('prestige:changed', { points: 0, multiplier: 1, milestoneMultiplier: 1, pendingGain: 0, totalPrestiges: 0 });
     }
 }

@@ -60,10 +60,10 @@ export const tests = [
             automation.buy(g.id); // 0.5/s
             bus.emit('upgrade:applied', { effect: { type: 'generator_mult', target: g.id, value: 2 } });
             bus.emit('upgrade:applied', { effect: { type: 'global_mult', value: 1.5 } });
-            bus.emit('prestige:changed', { multiplier: 1.2, totalPrestiges: 0 });
+            bus.emit('prestige:changed', { multiplier: 1.2, milestoneMultiplier: 1, totalPrestiges: 0 });
             assertClose(automation.getTotalPerSec(), 0.5 * 2 * 1.5 * 1.2, 1e-9);
-            // Meilenstein-Multiplikator kommt obendrauf
-            bus.emit('prestige:changed', { multiplier: 1.2, totalPrestiges: 5 }); // Legende ×2
+            // Meilenstein-Multiplikator kommt obendrauf (zentral in PrestigeSystem.getMilestoneMultiplier() berechnet)
+            bus.emit('prestige:changed', { multiplier: 1.2, milestoneMultiplier: 2, totalPrestiges: 5 }); // Legende ×2
             assertClose(automation.getTotalPerSec(), 0.5 * 2 * 1.5 * 1.2 * 2, 1e-9);
         },
     },
@@ -133,7 +133,42 @@ export const tests = [
             prestige.totalPrestiges = 5;
             assertEquals(prestige.getStartBonus(), 25_500); // global_mult zählt hier nicht rein
             assertEquals(prestige.getActiveMilestones().length, 3);
-            assertEquals(prestige.getNextMilestone(), null);
+            assertEquals(prestige.getNextMilestone().prestiges, 10); // nächste Stufe der erweiterten Reihe
+            prestige.totalPrestiges = 50;
+            assertEquals(prestige.getActiveMilestones().length, 12);
+            assertEquals(prestige.getNextMilestone(), null); // letzte Stufe erreicht
+        },
+    },
+    {
+        name: 'prestige: getMilestoneMultiplier multipliziert alle aktiven global_mult-Meilensteine',
+        fn() {
+            const { prestige } = freshSystems();
+            prestige.totalPrestiges = 0;
+            assertClose(prestige.getMilestoneMultiplier(), 1, 1e-9);
+            prestige.totalPrestiges = 5;
+            assertClose(prestige.getMilestoneMultiplier(), 2, 1e-9); // nur "Legende des Netzes"
+            prestige.totalPrestiges = 15;
+            assertClose(prestige.getMilestoneMultiplier(), 2 * 1.15, 1e-9); // + "System-Architekt"
+            prestige.totalPrestiges = 50;
+            assertClose(prestige.getMilestoneMultiplier(), 2 * 1.15 * 1.15 * 1.2 * 1.2 * 1.3, 1e-9); // alle 6 global_mult-Stufen
+        },
+    },
+    {
+        name: 'prestige: getThreshold wächst mit totalPrestiges (Basis unverändert bei 0)',
+        fn() {
+            const { prestige } = freshSystems();
+            assertEquals(prestige.getThreshold(), 1_000_000);
+            prestige.totalPrestiges = 10;
+            assertEquals(prestige.getThreshold(), Math.floor(1_000_000 * Math.pow(GameConfig.prestige.thresholdGrowth, 10)));
+        },
+    },
+    {
+        name: 'click: milestoneMultiplier aus prestige:changed wirkt auf getClickValue (Regressionstest für vorbestehenden Bug)',
+        fn() {
+            const { bus, click } = freshSystems();
+            assertClose(click.getClickValue(), 1, 1e-9);
+            bus.emit('prestige:changed', { multiplier: 1, milestoneMultiplier: 2, totalPrestiges: 5 });
+            assertClose(click.getClickValue(), 2, 1e-9);
         },
     },
     {

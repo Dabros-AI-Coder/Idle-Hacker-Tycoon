@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Polished-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.9.0-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-0.10.0-00ff88?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
   <img src="https://img.shields.io/badge/Stack-Vite_Tauri-ffcc00?style=for-the-badge" alt="Vite Tauri" />
 </p>
@@ -112,8 +112,8 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 
 | Mechanik | Wert |
 |---|---|
-| Freischaltung | ab **1.000.000** total verdienten Bits |
-| Punkte | 1 Punkt pro 1M (anteilig als Fortschritt sichtbar) |
+| Freischaltung | ab **1.000.000** total verdienten Bits, wächst danach ×1.3 pro Prestige (sonst wäre die Schwelle mit wachsenden permanenten Boni in Sekunden wieder erreicht) |
+| Punkte | 1 Punkt pro 1M `totalEarned` (anteilig als Fortschritt sichtbar) — skaliert automatisch mit, da die Schwelle wächst |
 | Effekt | **+5 %** auf Klick + alle Generatoren, pro Punkt (capped 50%) |
 | Reset | Bits, Generatoren & Upgrades — Punkte bleiben permanent |
 
@@ -124,8 +124,17 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | 1 | 🌱 Wiedergeboren | Start nach jedem Reset mit **500 Bits** |
 | 3 | 🛡️ Netz-Veteran | Start mit **25.000 Bits** |
 | 5 | 👑 Legende des Netzes | **×2** auf Klick & alle Server — permanent |
+| 10 | 🕵️ Schatten-Legion | Start mit **50.000 Bits** |
+| 15 | ⚙️ System-Architekt | **×1.15** auf Klick & alle Server — permanent |
+| 20 | 🧿 Unsichtbarer Admin | Start mit **150.000 Bits** |
+| 25 | 🛠️ Root-Baumeister | **×1.15** auf Klick & alle Server — permanent |
+| 30 | 🌐 Netzwerk-Souverän | Start mit **400.000 Bits** |
+| 35 | 🚀 Exabyte-Architekt | **×1.2** auf Klick & alle Server — permanent |
+| 40 | 🧬 Digitale Gottheit | Start mit **1.000.000 Bits** |
+| 45 | 🕳️ Void-Operator | **×1.2** auf Klick & alle Server — permanent |
+| 50 | 👁️ Allsehendes Auge | **×1.3** auf Klick & alle Server — permanent |
 
-> Zielkurven (headless validiert via `js/utils/simulate.js`, 5 Klicks/s, greedy): erstes Prestige ~14 min, Satelliten-Uplink ~51 min, Neural Overmind ~75 min, Singularitäts-Kern ~88 min — mit Prestige-Multiplikatoren entsprechend schneller.
+> Zielkurven (headless validiert via `js/utils/simulate.js`, 5 Klicks/s, greedy): erstes Prestige ~14 min, Satelliten-Uplink ~51 min, Neural Overmind ~75 min, Singularitäts-Kern ~88 min — mit Prestige-Multiplikatoren entsprechend schneller. Mehrfach-Prestige-Kadenz (`js/utils/simulateMultiPrestige.js`, gleicher greedy Bot): Prestige 1→5 dauert 14 → 11 → 9 → 5 → 3 Minuten (spürbar gestaffelt statt trivial), danach kollabiert die Kadenz unter einem theoretisch perfekten Dauer-Optimal-Bot auf Sekunden-Bruchteile — ein bekanntes Idle-Game-Artefakt unbegrenzter Reinvestition pro Tick, das reale Spieler (keine 10 Käufe/Sekunde) praktisch nicht erreichen.
 
 #### 💾 CPU-Chip-Shop (Zweitwährung, überlebt Prestige)
 
@@ -196,7 +205,7 @@ Idle-Hacker-Tycoon/
 └── js/
     ├── main.js             # Entry, --vh Fix, Standalone/Updater, Leaderboard-Tabs
     ├── config/
-    │   └── GameConfig.js   # ← Einzige Stelle für Balancing (v0.9.0)
+    │   └── GameConfig.js   # ← Einzige Stelle für Balancing (v0.10.0)
     ├── core/
     │   ├── Game.js         # Facade: Systeme, Loop, Save, Offline 2min/pending, Gummiband, Achievements/Daily
     │   ├── GameLoop.js     # fixer Tick via setInterval + rAF
@@ -310,11 +319,12 @@ Die installierte App läuft ohne Browser-UI, blockiert Text-Manipulation und pr�
 - [x] **v0.7.0** — P2: Themes (Auto/Dark/Light/Hacker), Bulk-Kauf x10/x100/Max, Impressum/Datenschutz, Tauri Auto-Updater (latest.json)
 - [x] **v0.8.0** — Längere Progression: 9 neue Generatoren (8→17), 11 neue Upgrades (Ø 1 pro neuem Generator + Übertaktung IV/V), Achievement „Netzwerk komplett“
 - [x] **v0.9.0** — CPU-Chip-Shop: Prestige-Zweitwährung mit 6 leveled Permanent-Upgrades, überlebt normale Resets — hält Root-Zugriff auch nach vielen Durchläufen spannend
+- [x] **v0.10.0** — 9 neue Prestige-Meilensteine (bis Prestige 50), Prestige-Schwelle wächst ×1.3/Prestige (löst triviale Wiederholungs-Prestiges), Bugfix: Meilenstein-Multiplikator wirkte bisher nicht auf Klicks
 - [ ] **v1.0** — Cloud-Save (optional)
 
 Ideen & Bugs gerne als [Issue](../../issues) eröffnen!
 
-**Stand: v0.9.0** – 17 Generatoren, 29 Upgrades, CPU-Chip-Shop.
+**Stand: v0.10.0** – 17 Generatoren, 29 Upgrades, CPU-Chip-Shop, 12 Prestige-Meilensteine, wachsende Prestige-Schwelle.
 
 ---
 

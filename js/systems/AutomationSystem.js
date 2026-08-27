@@ -41,27 +41,14 @@ export class AutomationSystem {
             if (effect.type === 'global_mult_add') this.shopGlobalBonus += delta;
             if (effect.type === 'cost_reduction_add') this.shopCostReductionBonus += delta;
         });
-        bus.on('prestige:changed', ({ multiplier, totalPrestiges }) => {
+        bus.on('prestige:changed', ({ multiplier, milestoneMultiplier }) => {
             this.prestigeMultiplier = multiplier || 1;
-            if (totalPrestiges !== undefined) {
-                this.milestoneMultiplier = this.calcMilestoneMultiplier(totalPrestiges);
-            }
+            this.milestoneMultiplier = milestoneMultiplier || 1;
         });
-        bus.on('prestige:committed', ({ multiplier, totalPrestiges }) => {
+        bus.on('prestige:committed', ({ multiplier, milestoneMultiplier }) => {
             this.prestigeMultiplier = multiplier || 1;
-            this.milestoneMultiplier = this.calcMilestoneMultiplier(totalPrestiges || 0);
+            this.milestoneMultiplier = milestoneMultiplier || 1;
         });
-    }
-
-    /** Produkt aller global_mult-Effekte aktivierter Meilensteine */
-    calcMilestoneMultiplier(totalPrestiges) {
-        let mult = 1;
-        for (const m of GameConfig.prestige.milestones) {
-            if (totalPrestiges >= m.prestiges && m.effect.type === 'global_mult') {
-                mult *= m.effect.value;
-            }
-        }
-        return mult;
     }
 
     /** Effektiver Kostenmultiplikator inkl. Upgrade- und Prestige-Shop-Kostenreduktion. */

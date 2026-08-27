@@ -3,7 +3,7 @@
  * Modular: jede Balance-Änderung nur hier.
  */
 export const GameConfig = Object.freeze({
-    version: '0.9.0',
+    version: '0.10.0',
     saveKey: 'idle_hacker_tycoon_v02',
     // Version des Save-Schemas (unabhängig vom localStorage-Key).
     // Bei Schema-Änderungen: hier erhöhen + Migration in Game.MIGRATIONS ergänzen.
@@ -18,9 +18,13 @@ export const GameConfig = Object.freeze({
     baseClickValue: 1,
 
     prestige: {
-        // Ab 1M totalEarned kann prestiget werden
+        // Ab 1M totalEarned kann prestiget werden (Basiswert bei totalPrestiges=0)
         threshold: 1_000_000,
-        // 1 Punkt pro 1M (aufgerundet via gainDivisor)
+        // Schwelle wächst pro Prestige: threshold * thresholdGrowth^totalPrestiges,
+        // sonst wäre sie mit wachsenden permanenten Boni in Sekunden erreichbar.
+        thresholdGrowth: 1.3,
+        // 1 Punkt pro 1M (aufgerundet via gainDivisor) — bleibt fix, Gain wächst
+        // automatisch mit, weil eine höhere Schwelle mehr totalEarned verlangt.
         gainDivisor: 1_000_000,
         // +10% global auf Klick + Generatoren pro Punkt
         multiplierPerPoint: 0.05,
@@ -30,6 +34,15 @@ export const GameConfig = Object.freeze({
             { prestiges: 1, icon: '🌱', name: 'Wiedergeboren', description: 'Nach jedem Root-Zugriff startest du mit 500 Bits.', effect: { type: 'start_bits', value: 500 } },
             { prestiges: 3, icon: '🛡️', name: 'Netz-Veteran', description: 'Start mit 25.000 Bits nach jedem Root-Zugriff.', effect: { type: 'start_bits', value: 25_000 } },
             { prestiges: 5, icon: '👑', name: 'Legende des Netzes', description: '×2 auf Klick & alle Server — permanent.', effect: { type: 'global_mult', value: 2 } },
+            { prestiges: 10, icon: '🕵️', name: 'Schatten-Legion', description: 'Start mit 50.000 Bits nach jedem Root-Zugriff.', effect: { type: 'start_bits', value: 50_000 } },
+            { prestiges: 15, icon: '⚙️', name: 'System-Architekt', description: '×1.15 auf Klick & alle Server — permanent.', effect: { type: 'global_mult', value: 1.15 } },
+            { prestiges: 20, icon: '🧿', name: 'Unsichtbarer Admin', description: 'Start mit 150.000 Bits nach jedem Root-Zugriff.', effect: { type: 'start_bits', value: 150_000 } },
+            { prestiges: 25, icon: '🛠️', name: 'Root-Baumeister', description: '×1.15 auf Klick & alle Server — permanent.', effect: { type: 'global_mult', value: 1.15 } },
+            { prestiges: 30, icon: '🌐', name: 'Netzwerk-Souverän', description: 'Start mit 400.000 Bits nach jedem Root-Zugriff.', effect: { type: 'start_bits', value: 400_000 } },
+            { prestiges: 35, icon: '🚀', name: 'Exabyte-Architekt', description: '×1.2 auf Klick & alle Server — permanent.', effect: { type: 'global_mult', value: 1.2 } },
+            { prestiges: 40, icon: '🧬', name: 'Digitale Gottheit', description: 'Start mit 1.000.000 Bits nach jedem Root-Zugriff.', effect: { type: 'start_bits', value: 1_000_000 } },
+            { prestiges: 45, icon: '🕳️', name: 'Void-Operator', description: '×1.2 auf Klick & alle Server — permanent.', effect: { type: 'global_mult', value: 1.2 } },
+            { prestiges: 50, icon: '👁️', name: 'Allsehendes Auge', description: '×1.3 auf Klick & alle Server — permanent.', effect: { type: 'global_mult', value: 1.3 } },
         ],
     },
 

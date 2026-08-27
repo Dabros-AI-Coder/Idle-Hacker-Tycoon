@@ -270,7 +270,7 @@ export class UIManager {
         if (!this.els.prestigeContent) return;
         const snap = this.game.prestige.snapshot();
         const total = this.game.economy.totalEarned;
-        const threshold = GameConfig.prestige.threshold;
+        const threshold = this.game.prestige.getThreshold();
         const progress = Math.min(1, total / threshold);
         const pending = snap.pendingGain;
         const nextMult = 1 + (snap.points + pending) * GameConfig.prestige.multiplierPerPoint;

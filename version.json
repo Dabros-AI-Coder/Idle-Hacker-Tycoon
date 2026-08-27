@@ -1,5 +1,5 @@
 {
-  "version": "0.9.0",
+  "version": "0.10.0",
   "build": 20260827,
-  "notes": "Prestige-Shop: CPU-Chips als permanente Zweitwährung, 6 ausbaubare Boni"
+  "notes": "9 neue Prestige-Meilensteine (bis Prestige 50), wachsende Prestige-Schwelle, Klick-Bugfix für Meilenstein-Multiplikator"
 }
