@@ -3,10 +3,10 @@
 > **Vom Script Kiddie zum Root God.** Hacke, automatisiere und dominiere das Netz — direkt im Browser, optimiert für Smartphone.
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Status-Playable-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.4.5-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Status-Polished-success?style=for-the-badge" alt="Status" />
+  <img src="https://img.shields.io/badge/Version-0.5.0-00ff88?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
-  <img src="https://img.shields.io/badge/Vanilla_JS-ES_Modules-ffcc00?style=for-the-badge" alt="Vanilla JS" />
+  <img src="https://img.shields.io/badge/Stack-Vite_Tauri-ffcc00?style=for-the-badge" alt="Vite Tauri" />
 </p>
 
 <p align="center">
@@ -34,23 +34,27 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 
 | Kategorie | Details |
 |---|---|
-| **🎮 Hauptmenü** | Screen mit *Spielen / Optionen / Beenden* — das Spiel startet erst bei „Spielen"; Optionen: Vibration, Offline-Ertrag, Tutorial zurücksetzen |
+| **🎮 Hauptmenü** | *Spielen / Optionen / Beenden* — Spiel startet erst bei „Spielen“; In-Game `☰` Popup (Hauptmenü / Optionen / Beenden) mit Rückkehr zum Spiel; Optionen jetzt mit Subtabs *Optionen ↔ Statistiken* |
+| **👤 Hacker-Name** | Beim ersten Start Pflicht-Popup „Wie sollen wir dich nennen?“ (milchiger Blur, Bestätigen/Enter) über In-Game, 2–16 Zeichen, änderbar in Optionen |
 | **👆 Aktives Hacken** | Tap/Hold auf den Hack-Button, Float-Animation, Haptik (`navigator.vibrate`) |
 | **🤖 8 Generatoren** | Script Kiddie → Botnet → Server Farm → Quantum Rig → KI-Schwarm → Darknet-Markt → Satelliten-Uplink → Neural Overmind |
 | **⬆️ 18 Upgrades** | Klick- & Generator-Boosts, Global-Boosts, Unlock-Ketten; Balance-capped Prestige-Multiplikator |
 | **📈 Level-System** | 9 Ränge von *Script Kiddie* bis *Singularity* (bis 1B total) mit Progress-Bar |
 | **👑 Prestige (Root-Zugriff)** | Ab 1M `totalEarned` resetten → 1 Punkt pro 1M, **+5 % Global-Multiplikator pro Punkt** (capped at 50%), permanent |
+| **👻 Fiktive Rangliste** | 20 Plätze (19 NPCs + Du, `DU`-Badge), Gummiband: NPCs skalieren mit `+32% Prestige` + `12% Bits/Prestige` + `18% totalEarned` (All-Time) bzw. `22% aktuell`, 2 Tabs *All-Time / Aktuell*, Top-3 Gold/Silber/Bronze |
+| **📊 Statistiken** | Aus `Stats`-Tab in Hauptmenü → Optionen → Statistiken verschoben; letzter In-Game-Tab ist jetzt reine Rangliste |
 | **📱 PWA** | Installierbar (`manifest.json`, Icons), Standalone-Erkennung, Browser-Schutz (kein Rechtsklick/Markieren/Kopieren in der App) |
-| **🔄 Auto-Update-Check** | Installierte App prüft `version.json` (Cache-Bypass) → Bestätigungsdialog bei neuer Version; „Später" gilt nur pro Session; Schleifenschutz falls das CDN die neue Version noch nicht ausliefert |
+| **🖥️ Desktop (Tauri)** | Vite + Tauri (Rust), Fenster 560×800, `npm run tauri:dev/build` → `.exe/.msi`, selber `dist`-Build |
+| **🔄 Auto-Update-Check** | Installierte App prüft `version.json` (Cache-Bypass) → Bestätigungsdialog bei neuer Version; „Später" gilt nur pro Session; Schleifenschutz 5 min |
 | **💾 Persistenz** | Auto-Save alle 5s + `visibilitychange` + `beforeunload`, `localStorage` |
-| **🛡️ Save-Schema** | Versioniertes Save-Format (`schemaVersion`) mit Migrations-Kette — alte Spielstände bleiben kompatibel; Saves von neueren Versionen werden abgelehnt statt zu crashen |
-| **💾 Export/Import** | Spielstand als JSON-Code kopieren & wieder einfügen (Backup/Gerätewechsel) im Stats-Tab |
-| **🌙 Offline-Progress** | Bis zu 12h passives Einkommen nachrechnen — beim Spielstart mit *Willkommen-zurück*-Modal, bei Tab-Rückkehr als Catch-Up (>10s Abwesenheit) |
-| **⏯️ Hintergrund-Betrieb** | Logik-Tick läuft via `setInterval` weiter, auch wenn das Tab minimiert ist; suspendierte Zeit wird beim Rückkehren gutgeschrieben |
-| **📴 Offline-fähig** | Service Worker (Network-First) — Updates kommen sofort an, offline dient der letzte Stand |
+| **🛡️ Save-Schema** | Versioniertes Save-Format (`schemaVersion`) mit Migrations-Kette + Korruptions-Fallback (`save:corrupted`/`save:newer` Modals, Shape-Validierung, kein Crash) |
+| **💾 Export/Import** | Spielstand als JSON-Code kopieren & wieder einfügen (Backup/Gerätewechsel) in Statistiken |
+| **🌙 Offline-Progress** | Bis 12h passives Einkommen — **erst nach Neustart >2 Min offline** mit milchigem *Willkommen zurück*-Popup (Formel `Zeit × Leistung = Ertrag`, große Zahl, Bestätigen addiert Guthaben); Tab-Rückkehr ab 10s als Toast |
+| **⏯️ Hintergrund-Betrieb** | Logik-Tick via `setInterval` weiter, auch minimiert; suspendierte Zeit als Catch-Up |
+| **📴 Offline-fähig** | Service Worker (Network-First) — Updates sofort, offline letzter Stand |
 | **📱 Mobile-First** | `100dvh`, `safe-area-inset`, `clamp()`, 44px Touch-Targets, No-Zoom |
-| **🎓 Onboarding** | 3-stufiges Tutorial für neue Spieler (HACK → erster Server → Idle-Loop erklärt), überspringbar; Bestandsspieler werden automatisch erkannt |
-| **⚡ Performance** | Fixer Tick (10/s) + `requestAnimationFrame` fürs Rendering, kein Framework-Overhead |
+| **🎓 Onboarding** | 4-stufiges Tutorial (HACK → Script Kiddie → Idle-Loop (perSec≥2) → Root bei 1M), optional, Bestandsspieler-Erkennung |
+| **⚡ Performance** | Fixer Tick (10/s) + `requestAnimationFrame`, Vite-Bundling, kein Framework-Overhead |
 
 ### Generatoren
 
@@ -87,7 +91,7 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 |---|---|
 | Freischaltung | ab **1.000.000** total verdienten Bits |
 | Punkte | 1 Punkt pro 1M (anteilig als Fortschritt sichtbar) |
-| Effekt | **+10 %** auf Klick + alle Generatoren, pro Punkt |
+| Effekt | **+5 %** auf Klick + alle Generatoren, pro Punkt (capped 50%) |
 | Reset | Bits, Generatoren & Upgrades — Punkte bleiben permanent |
 
 #### Prestige-Meilensteine (permanent)
@@ -104,27 +108,35 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 
 ## 🚀 Quickstart
 
-### Variante A — Direkt öffnen
+### Variante A — Vite (Web, empfohlen)
 ```bash
-# Repo klonen
 git clone https://github.com/Dabros-AI-Coder/Idle-Hacker-Tycoon.git
 cd Idle-Hacker-Tycoon
+npm install
 
-# Einfach per HTTP serven (ES-Module brauchen einen Server)
-npx http-server . -p 8080
-# → http://localhost:8080
+npm run dev      # → http://localhost:1420  (Vite + HMR)
+npm run build    # → dist/ (für GitHub Pages)
+npm run preview  # → Vorschau des Builds auf http://localhost:4173
 ```
 
-> `index.html` direkt via `file://` öffnet **nicht** — Browser blockieren ES-Module ohne HTTP.
+> `index.html` direkt via `file://` öffnet **nicht** — Browser blockieren ES-Module ohne HTTP. Vite löst das (dient via HTTP + bundelt für Production).
+
+### Variante B — Tauri Desktop (.exe)
+```bash
+# Voraussetzung: Rust + Visual Studio Build Tools (Windows) installiert
+npm run tauri:dev    # Desktop-Fenster im Dev-Modus (Vite auf Port 1420)
+npm run tauri:build  # → src-tauri/target/release/bundle/ (.exe / .msi)
+```
+Fenster: 560×800, zentriert, resizable. Nutzt denselben `dist`-Build wie Web — kein Code-Duplikat.
 
 ### Tests & Balance-Simulation
 ```bash
-node tests/run.js            # Unit-Tests (23 Tests: Economy, Automation, Prestige, Migration, Export/Import)
+npm test                 # alias für node tests/run.js (23 Tests)
 node js/utils/simulate.js    # Headless Balance-Simulation (30 min Standard)
 ```
 
-### Variante B — GitHub Pages
-`Settings` → `Pages` → `Source: main / root` → Link ist oben im Header.
+### Variante C — GitHub Pages
+`Settings` → `Pages` → `Source: GitHub Actions` — Workflow `.github/workflows/deploy.yml` baut via `npm run build` nach `dist/` und deployed. Alternativ `main / root` für direkten Pages-Deploy ohne Build.
 
 ---
 
@@ -134,24 +146,28 @@ Vollmodular nach **OOP-Prinzipien**. Keine Gott-Klasse, lose Kopplung via EventB
 
 ```
 Idle-Hacker-Tycoon/
-├── index.html              # App-Shell, Tabs, Hack-Button
+├── index.html              # App-Shell, Tabs (Server/Upgrades/Root/Rang), Hack-Button
 ├── manifest.json           # PWA Manifest (installierbar)
 ├── sw.js                   # Service Worker: Network-First + Offline-Fallback
 ├── version.json            # Remote-Version für Update-Check
+├── vite.config.js          # Vite (base /Idle-Hacker-Tycoon/ auf GH Actions, copyStatic)
+├── package.json            # Vite 6 + Tauri 2
 ├── css/
-│   └── style.css           # Mobile-First, CSS-Variablen, 560px Layout
+│   └── style.css           # Mobile-First, CSS-Variablen, 560px Layout, Milch-Blur Modals
 ├── assets/                 # PWA Icons (192/512/apple-touch)
+├── .github/workflows/deploy.yml # Pages Deploy (npm ci → test → build → dist)
+├── src-tauri/              # Tauri Rust (560×800, Icons)
 └── js/
-    ├── main.js             # Entry, --vh Fix, Standalone-Erkennung, Update-Schedule
+    ├── main.js             # Entry, --vh Fix, Standalone-Erkennung, Update-Schedule, Leaderboard-Tabs
     ├── config/
-    │   └── GameConfig.js   # ← Einzige Stelle für Balancing
+    │   └── GameConfig.js   # ← Einzige Stelle für Balancing (v0.5.0)
     ├── core/
-    │   ├── Game.js         # Facade: orchestriert Systeme, Loop, Save, Offline-Catch-Up
+    │   ├── Game.js         # Facade: orchestriert Systeme, Loop, Save, Offline-Catch-Up (2min/pending), Gummiband-Leaderboard
     │   ├── GameLoop.js     # fixer Tick via setInterval (läuft minimiert weiter) + rAF-Rendering
-    │   ├── Options.js      # Benutzeroptionen (Vibration, Offline-Ertrag) — separates localStorage-Key
+    │   ├── Options.js      # Benutzeroptionen (Vibration, Offline, Username) — separates localStorage-Key
     │   ├── EventBus.js     # Pub/Sub
-    │   ├── SaveManager.js  # localStorage Wrapper
-    │   └── UpdateManager.js# version.json Check, Update-Popup, Hard-Reload
+    │   ├── SaveManager.js  # localStorage Wrapper + Shape-Validierung + isCorrupted()
+    │   └── UpdateManager.js# version.json Check (cooldown 1min, pending 5min), Update-Popup, Hard-Reload
     ├── systems/
     │   ├── EconomySystem.js     # Bits, Transaktionen
     │   ├── ClickSystem.js       # Tap-Logik, Multiplikatoren
@@ -159,8 +175,8 @@ Idle-Hacker-Tycoon/
     │   ├── UpgradeSystem.js     # Once-Buy, Unlock-Kette
     │   └── PrestigeSystem.js    # Root-Zugriff: Reset + permanente Multiplikatoren
     ├── ui/
-    │   ├── UIManager.js    # Rendering, Tabs, Toasts, Float-Text, Update-Modal
-    │   └── MainMenu.js     # Hauptmenü: Spielen / Optionen / Beenden
+    │   ├── UIManager.js    # Rendering, Tabs, Toasts, Float-Text, Update/Offline/Corrupted-Modals, 4-Step Tutorial
+    │   └── MainMenu.js     # Hauptmenü: Spielen / Optionen / Beenden, Username-Pflicht, In-Game Popup, Rückkehr-Logik
     └── utils/
         ├── Formatter.js    # K/M/B/T, Zeit-Format
         ├── haptics.js      # Zentrale Vibration (respektiert Optionen)
@@ -171,7 +187,7 @@ Idle-Hacker-Tycoon/
 - **Single Source of Truth** — Balancing nur in `GameConfig.js`
 - **Event-driven** — Systeme sprechen nur über `EventBus`
 - **Separation of Concerns** — `UIManager` enthält null Game-Logik
-- **Kein Framework** — Vanilla JS (ES Modules), ~17 Dateien
+- **Kein Framework** — Vanilla JS (ES Modules) + Vite/Tauri, ~22 Dateien
 
 ---
 
@@ -188,7 +204,7 @@ graph LR
     E --> D
     D --> F[Level-Up]
     F --> G[Prestige: Root-Zugriff]
-    G --> H[+10% Global-Mult. pro Punkt]
+    G --> H[+5% Global-Mult. pro Punkt]
     H --> A
 ```
 
@@ -209,9 +225,9 @@ Installierte Apps (Standalone) prüfen beim Start (+2s) und bei Rückkehr in den
 
 ## 🌙 Offline & Hintergrund
 
-- **Minimiert/im Hintergrund:** Der Logik-Tick läuft über `setInterval` weiter (rAF würde pausiert). Wird das Tab vom Browser komplett eingefroren (z. B. Mobile), rechnet `Game` beim Rückkehren die suspendierte Zeit als Catch-Up-Ertrag nach (>10s, gedeckelt auf 12h) und speichert sofort.
-- **App geschlossen:** Beim nächsten Start wird die Zeit seit dem letzten Auto-Save (`savedAt`) nachvergütet — mit *Willkommen-zurück*-Modal inkl. Offline-Dauer und erhaltenen Bits.
-- **Kein Netz:** Der Service Worker liefert die zuletzt geladenen Ressourcen aus dem Cache — das Spiel bleibt spielbar.
+- **Minimiert/im Hintergrund:** Logik-Tick via `setInterval` weiter (rAF würde pausiert). Wird das Tab komplett eingefroren (z. B. Mobile), rechnet `Game` beim Rückkehren die suspendierte Zeit als Catch-Up nach (>10s, gedeckelt auf 12h) und speichert sofort.
+- **App geschlossen:** Erst nach **>2 Min** offline beim nächsten Start mit milchigem *Willkommen zurück*-Popup (Formel `Zeit × Leistung = Ertrag`, große Zahl, Bestätigen addiert Guthaben). Unter 2 Min kein Popup.
+- **Kein Netz:** Service Worker liefert zuletzt geladene Ressourcen aus dem Cache — spielbar.
 
 ---
 
@@ -247,14 +263,14 @@ Die installierte App läuft ohne Browser-UI, blockiert Text-Manipulation und pr�
 - [x] **v0.4.3** — Feedback mit System-Info, PWA-Install-Prompt, Plausible Analytics
 - [x] **v0.4.4** — Balance-Cap: Prestige-Bonus capped at 50%, neue Upgrades (7 Stück)
 - [x] **v0.4.5** — NPC-Leaderboard (20 Positionen, Single-Player Motivations-Hilfe)
-- [ ] **v0.5** — Hack-Minigame (Timing/Pattern)
-- [ ] **v0.5** — Achievements & Daily Rewards
-- [ ] **v0.6** — Sound/Musik + Themes (Light/Dark/Hacker-Green)
+- [x] **v0.5.0** — Polished Beta: Vite 6 + Tauri Desktop, dynamisches Gummiband-Leaderboard (All-Time/Aktuell + Spieler), Username-Pflicht (milchig), Offline 2min-Willkommen, In-Game Popup + Rückkehr, Statistiken→Optionen, Save-Korruptions-Fallback, 4-Step Tutorial, Pages-CI
+- [ ] **v0.6** — Hack-Minigame (Timing/Pattern), Achievements & Daily Rewards
+- [ ] **v0.7** — Sound/Musik + Themes (Light/Dark/Hacker-Green)
 - [ ] **v1.0** — Cloud-Save (optional), Leaderboard
 
 Ideen & Bugs gerne als [Issue](../../issues) eröffnen!
 
-**Stand: v0.4.5** – Neu: 50% Prestige-Bonus-Cap, 18 Upgrades, NPC-Leaderboard (20 Positionen, Single-Player).
+**Stand: v0.5.0** – Polished: Vite/Tauri, dynamische Rangliste mit Dir, 2min-Offline, Username-Pflicht, P0-Save/Tutorial/CI fertig.
 
 ---
 
@@ -262,7 +278,7 @@ Ideen & Bugs gerne als [Issue](../../issues) eröffnen!
 
 ```bash
 git checkout -b feature/mein-feature
-# ... ändern, testen (npx http-server)
+# ... ändern, testen (npm run build, npm test)
 git commit -m "feat: mein Feature"
 git push origin feature/mein-feature
 # → Pull Request öffnen

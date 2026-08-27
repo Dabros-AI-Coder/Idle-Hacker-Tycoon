@@ -113,24 +113,27 @@ export class UIManager {
         this.bus.on('game:prestige', () => this.renderAll());
         this.bus.on('game:tick', () => this.renderTick());
         this.bus.on('game:initialized', () => this.renderAll());
-        this.bus.on('game:offline', ({ amount, seconds, capped, isInit }) => {
+        this.bus.on('game:offline', ({ amount, seconds, perSec, capped, isInit }) => {
             if (amount <= 0) return;
             if (isInit) {
-                this._showOfflineModal(amount, seconds, capped);
+                this._showOfflineModal(amount, seconds, perSec, capped);
             } else {
                 this.toast(`Willkommen zurück! +${Formatter.formatBits(amount)} Bits`);
             }
         });
         this.bus.on('game:reset', () => this.renderAll());
+        this.bus.on('save:corrupted', ({ key }) => this._showCorruptedModal(key));
+        this.bus.on('save:newer', ({ version }) => this._showNewerModal(version));
         // Tutorial: bei relevanten Events weiterschalten
         this.bus.on('game:initialized', () => {
             this._initTutorial();
-            // Feedback-Link dynamisch mit System-Info befüllen
             if (this.els.feedbackLink) this.els.feedbackLink.href = buildFeedbackUrl();
         });
         this.bus.on('click:hacked', () => this._updateTutorial());
         this.bus.on('automation:bought', () => this._updateTutorial());
         this.bus.on('upgrade:bought', () => this._updateTutorial());
+        this.bus.on('prestige:changed', () => this._updateTutorial());
+        this.bus.on('game:prestige', () => this._updateTutorial());
         // Update verfügbar (nur als installierte App via UpdateManager onlyStandalone)
         this.bus.on('update:available', ({ remote, current }) => this._showUpdateModal(remote, current));
         this.bus.on('update:pending', () => {
@@ -287,10 +290,17 @@ export class UIManager {
 
     _initTutorial() {
         this._tutorialDone = this._loadTutorialFlag();
-        // Bestehende Spieler überspringen den Tutorial automatisch
         if (!this._tutorialDone && this._hasRealProgress()) {
-            this._finishTutorial(false);
-            return;
+            // Prestige-Tutorial trotzdem zeigen wenn noch kein Prestige möglich/geschafft
+            const needPrestigeHint = !this.game.prestige.canPrestige() && this.game.prestige.totalPrestiges === 0;
+            if (needPrestigeHint && this.game.economy.totalEarned < GameConfig.prestige.threshold * 0.3) {
+                this._finishTutorial(false);
+                return;
+            }
+            if (this.game.prestige.totalPrestiges > 0) {
+                this._finishTutorial(false);
+                return;
+            }
         }
         this._updateTutorial();
     }
@@ -303,7 +313,7 @@ export class UIManager {
             || g.prestige.totalPrestiges > 0;
     }
 
-    /** @returns {{id:string, text:string, done:()=>boolean}[]} */
+    /** @returns {{id:string, text:string, done:()=>boolean, optional?:boolean}[]} */
     _tutorialSteps() {
         return [
             {
@@ -319,7 +329,13 @@ export class UIManager {
             {
                 id: 'idle_loop',
                 text: '<strong>⚡ Läuft!</strong> Deine Server verdienen jetzt <strong>Bits/sec</strong> — auch offline. Im <strong>Upgrades</strong>-Tab gibt\'s Boosts.',
-                done: () => this.game.upgrades.purchased.size > 0,
+                done: () => this.game.upgrades.purchased.size > 0 || this.game.automation.getTotalPerSec() >= 2,
+                optional: true,
+            },
+            {
+                id: 'prestige',
+                text: '<strong>👑 Bei 1M total Bits</strong> wartet <strong>Root-Zugriff</strong> im Root-Tab — resettet für permanente +5% Boni je Key.',
+                done: () => this.game.prestige.canPrestige() || this.game.prestige.totalPrestiges > 0,
                 optional: true,
             },
         ];
@@ -408,32 +424,95 @@ export class UIManager {
         }
     }
 
-    _showOfflineModal(amount, seconds, capped) {
+    _showOfflineModal(amount, seconds, perSec, capped) {
         const overlay = document.createElement('div');
-        overlay.className = 'modal-overlay';
+        overlay.className = 'modal-overlay username-overlay';
         const capNote = capped
-            ? `<br><span style="color:var(--text-dim)">Ertrag auf ${GameConfig.offlineCapHours}h Offline-Limit gedeckelt.</span>`
+            ? `<p style="color:var(--text-dim);font-size:0.72rem;margin-top:8px;">Auf ${GameConfig.offlineCapHours}h Limit gedeckelt.</p>`
             : '';
+        const effectivePerSec = perSec ?? (seconds > 0 ? amount / seconds : 0);
         overlay.innerHTML = `
             <div class="modal offline-modal">
-                <h3><span class="update-icon">💤</span> Willkommen zurück!</h3>
-                <p>Dein Netzwerk hat weitergemined, während du weg warst:</p>
-                <div class="offline-summary">
-                    <div class="server-kpi"><span>Offline-Zeit</span><strong>${Formatter.formatTime(seconds)}</strong></div>
-                    <div class="server-kpi"><span>Erhaltene Bits</span><strong class="accent">+${Formatter.formatBits(amount)}</strong></div>
-                </div>${capNote}
-                <div class="modal-actions">
-                    <button class="btn-modal primary" data-action="collect">Einsammeln</button>
+                <h3>Willkommen zurück!</h3>
+                <p>Dein Netzwerk hat offline weiter verdient:</p>
+                <div class="offline-formula">
+                    <span>${Formatter.formatTime(seconds)}</span>
+                    <span class="op">×</span>
+                    <span>${Formatter.formatPerSec(effectivePerSec)} /sec</span>
+                    <span class="op">=</span>
+                </div>
+                <div class="offline-total">+${Formatter.formatFull(amount)} Bits</div>
+                <p style="color:var(--text-dim);font-size:0.72rem;margin-top:4px;">${Formatter.formatTime(seconds)} × ${Formatter.formatPerSec(effectivePerSec)} Bits/sec</p>
+                ${capNote}
+                <div class="modal-actions" style="margin-top:16px;">
+                    <button class="btn-modal primary" data-action="collect">Bestätigen</button>
                 </div>
             </div>
         `;
         document.body.appendChild(overlay);
         const close = () => {
             overlay.remove();
+            const claimed = this.game.claimPendingOffline?.();
+            if (claimed) this.toast(`+${Formatter.formatBits(claimed.amount)} Bits eingesammelt`);
+            haptic(20);
+            this.renderAll();
+        };
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) { haptic(10); } });
+        overlay.querySelector('[data-action="collect"]').addEventListener('click', close);
+    }
+
+    _showCorruptedModal(key) {
+        if (document.querySelector('.modal.corrupted-modal')) return;
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `
+            <div class="modal corrupted-modal" style="border-color: rgba(239,68,68,0.45);">
+                <h3>⚠️ Spielstand beschädigt</h3>
+                <p>Der gespeicherte Stand (<code>${key}</code>) ist ungültig und konnte nicht geladen werden.<br>Du startest frisch — der alte Stand bleibt vorerst erhalten.</p>
+                <div class="modal-actions">
+                    <button class="btn-modal secondary" data-action="keep">Weiter (frisch)</button>
+                    <button class="btn-modal primary" style="background: #ef4444;" data-action="reset">Speicher löschen</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        const closeKeep = () => overlay.remove();
+        const closeReset = () => {
+            try { localStorage.removeItem(key); localStorage.removeItem('idle_hacker_tycoon_v01'); } catch {}
+            overlay.remove();
+            this.toast('Beschädigter Stand gelöscht');
             haptic(20);
         };
-        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-        overlay.querySelector('[data-action="collect"]').addEventListener('click', close);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeKeep(); });
+        overlay.querySelector('[data-action="keep"]').addEventListener('click', closeKeep);
+        overlay.querySelector('[data-action="reset"]').addEventListener('click', closeReset);
+    }
+
+    _showNewerModal(version) {
+        if (document.querySelector('.modal.newer-modal')) return;
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `
+            <div class="modal newer-modal" style="border-color: rgba(239,68,68,0.45);">
+                <h3>⚠️ Neuere Version erkannt</h3>
+                <p>Dieser Stand stammt von Schema v<strong>${version ?? '?'}</strong> und ist mit v${GameConfig.schemaVersion} nicht kompatibel.<br>Bitte aktualisiere das Spiel oder starte frisch.</p>
+                <div class="modal-actions">
+                    <button class="btn-modal secondary" data-action="keep">Weiter (frisch)</button>
+                    <button class="btn-modal primary" style="background: #ef4444;" data-action="reset">Speicher löschen</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        const closeKeep = () => overlay.remove();
+        const closeReset = () => {
+            this.game.reset();
+            overlay.remove();
+            this.toast('Stand zurückgesetzt');
+            haptic(20);
+        };
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeKeep(); });
+        overlay.querySelector('[data-action="keep"]').addEventListener('click', closeKeep);
+        overlay.querySelector('[data-action="reset"]').addEventListener('click', closeReset);
     }
 
     _showUpdateModal(remote, current) {

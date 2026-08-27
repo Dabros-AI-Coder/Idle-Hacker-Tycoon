@@ -7,6 +7,7 @@ const KEY = 'idle_hacker_options';
 const DEFAULTS = {
     haptics: true,          // Vibration bei Klicks/Käufen
     offlineEarnings: true,  // Offline-/Catch-Up-Ertrag gutschreiben
+    username: '',           // Hacker-Name für Rangliste
 };
 
 class _Options {

@@ -19,10 +19,12 @@ export class MainMenu {
         this.versionEl = document.getElementById('menu-version');
 
         document.getElementById('menu-play').addEventListener('click', () => this._play());
-        document.getElementById('menu-options').addEventListener('click', () => this._showOptions());
+        document.getElementById('menu-options').addEventListener('click', () => { this._fromGame = false; this._showOptions(); });
         document.getElementById('menu-quit').addEventListener('click', () => this._quit());
-        document.getElementById('menu-back').addEventListener('click', () => this._showMain());
+        document.getElementById('menu-back').addEventListener('click', () => this._handleBack());
         document.getElementById('opt-reset-tutorial').addEventListener('click', () => this._resetTutorial());
+        const toMenuBtn = document.getElementById('btn-to-menu');
+        if (toMenuBtn) toMenuBtn.addEventListener('click', () => this._showInGamePopup());
 
         // PWA-Install-Button
         this.installHandler = new InstallHandler();
@@ -50,15 +52,37 @@ export class MainMenu {
             Options.set('offlineEarnings', e.target.checked);
         });
 
-        // ESC: zurück ins Hauptmenü-Panel
+        this._fromGame = false; // true wenn Optionen aus In-Game geöffnet wurden
+        // ESC: zurück — respektiert _fromGame
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !this.optionsPanel.classList.contains('hidden')) {
-                this._showMain();
+                this._handleBack();
             }
         });
 
         this.versionEl.textContent = `v${GameConfig.version}`;
         this.statusEl.textContent = '';
+
+        // Username: bei Erststart nach SPIELEN abfragen, hier schon Input im Optionen-Panel spiegeln
+        this.usernameInput = document.getElementById('opt-username');
+        if (this.usernameInput) {
+            this.usernameInput.value = Options.get('username') || '';
+            this.usernameInput.addEventListener('change', (e) => {
+                const v = this._sanitizeUsername(e.target.value);
+                Options.set('username', v);
+                e.target.value = v;
+                this._setStatus(v ? `✓ Name: ${v}` : 'Name gelöscht');
+                haptic(10);
+                window.__IDLE_HACKER__?.renderNpcLeaderboard?.();
+            });
+        }
+
+        // Subtabs in Optionen (Optionen ↔ Statistiken)
+        this.menuSubtabs = [...document.querySelectorAll('.menu-subtab')];
+        this.menuTabContents = [...document.querySelectorAll('.menu-tab-content')];
+        for (const btn of this.menuSubtabs) {
+            btn.addEventListener('click', () => this._switchMenuTab(btn.dataset.menuTab));
+        }
     }
 
     get isVisible() {
@@ -69,6 +93,66 @@ export class MainMenu {
         this.el.classList.add('hidden');
     }
 
+    show() {
+        haptic(10);
+        try { this.game.persist(); } catch {}
+        try { this.game.loop.stop(); } catch {}
+        this._fromGame = false;
+        this._showMain();
+        this.el.classList.remove('hidden');
+    }
+
+    showOptionsFromGame() {
+        haptic(10);
+        try { this.game.persist(); } catch {}
+        try { this.game.loop.stop(); } catch {}
+        this._fromGame = true;
+        this.mainPanel.classList.add('hidden');
+        this.optionsPanel.classList.remove('hidden');
+        this._switchMenuTab('options');
+        this._setStatus('');
+        this.el.classList.remove('hidden');
+    }
+
+    _handleBack() {
+        if (this._fromGame) {
+            // Zurück ins Spiel statt Hauptmenü
+            this._fromGame = false;
+            this.hide();
+            try { this.game.start(); } catch {}
+            haptic(10);
+        } else {
+            this._showMain();
+        }
+    }
+
+    _showInGamePopup() {
+        haptic(10);
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay ingame-menu-overlay';
+        overlay.innerHTML = `
+            <div class="modal ingame-menu-modal">
+                <h3>Menü</h3>
+                <div class="menu-panel" style="margin-top:12px;">
+                    <button class="menu-btn" data-action="hauptmenu">🏠 Hauptmenü</button>
+                    <button class="menu-btn" data-action="optionen">⚙ Optionen</button>
+                    <button class="menu-btn" data-action="beenden">⏻ Beenden</button>
+                    <button class="btn menu-opt-btn secondary" data-action="close">Weiter spielen</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        const close = () => overlay.remove();
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+        overlay.querySelector('[data-action="close"]').addEventListener('click', close);
+        overlay.querySelector('[data-action="hauptmenu"]').addEventListener('click', () => { close(); this.show(); });
+        overlay.querySelector('[data-action="optionen"]').addEventListener('click', () => { close(); this.showOptionsFromGame(); });
+        overlay.querySelector('[data-action="beenden"]').addEventListener('click', () => { close(); this._quit(); });
+        document.addEventListener('keydown', function esc(e) {
+            if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc); }
+        });
+    }
+
     _setStatus(msg) {
         this.statusEl.textContent = msg || '';
     }
@@ -76,18 +160,88 @@ export class MainMenu {
     /** "Spielen": Menü schließen, Spiel initialisieren + Loop starten. */
     _play() {
         haptic(20);
+        if (!Options.get('username')) {
+            // Über In-Game-Szene legen: erst Spiel starten/hide, dann Popup mit milchigem Blur
+            this._doPlay();
+            this._promptUsername();
+            return;
+        }
+        this._doPlay();
+    }
+
+    _doPlay() {
+        this.hide();
         if (!this.game.initialized) {
-            // Lädt den Spielstand, migriert ihn und gewährt Offline-Ertrag
             this.game.init();
         }
         this.game.start();
-        this.hide();
+    }
+
+    _sanitizeUsername(raw) {
+        let v = String(raw || '').trim().replace(/\s+/g, ' ');
+        // 2-16 Zeichen, alphanumerisch + _-.
+        v = v.slice(0, 16);
+        if (v.length > 0 && v.length < 2) v = '';
+        if (/[^a-zA-Z0-9_\- äöüÄÖÜß]/.test(v)) v = v.replace(/[^a-zA-Z0-9_\- äöüÄÖÜß]/g, '').trim();
+        return v;
+    }
+
+    _promptUsername(onDone) {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay username-overlay';
+        overlay.innerHTML = `
+            <div class="modal username-modal">
+                <h3>Wie sollen wir dich nennen?</h3>
+                <p>Dein Hacker-Name für die fiktive Rangliste. 2–16 Zeichen.</p>
+                <input id="username-input" class="username-input" type="text" maxlength="16" placeholder="z. B. ZeroCool" autocomplete="off" spellcheck="false" />
+                <p id="username-error" class="username-error hidden"></p>
+                <div class="modal-actions">
+                    <button class="btn-modal primary" data-action="confirm">Bestätigen</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        const input = overlay.querySelector('#username-input');
+        const error = overlay.querySelector('#username-error');
+        const confirm = overlay.querySelector('[data-action="confirm"]');
+        const current = Options.get('username') || '';
+        input.value = current;
+        setTimeout(() => input.focus(), 80);
+        const close = () => overlay.remove();
+        const submit = () => {
+            const v = this._sanitizeUsername(input.value);
+            if (!v || v.length < 2) {
+                error.textContent = 'Bitte 2–16 Zeichen eingeben.';
+                error.classList.remove('hidden');
+                input.focus();
+                haptic([10, 20]);
+                return;
+            }
+            Options.set('username', v);
+            if (this.usernameInput) this.usernameInput.value = v;
+            haptic(20);
+            close();
+            window.__IDLE_HACKER__?.renderNpcLeaderboard?.();
+            if (onDone) onDone();
+        };
+        confirm.addEventListener('click', submit);
+        input.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) { haptic(10); input.focus(); } });
+    }
+
+    _switchMenuTab(name) {
+        for (const b of this.menuSubtabs) b.classList.toggle('active', b.dataset.menuTab === name);
+        for (const c of this.menuTabContents) c.classList.toggle('active', c.id === `menu-tab-${name}`);
+        // hidden-Klasse für Kompatibilität
+        for (const c of this.menuTabContents) c.classList.toggle('hidden', c.id !== `menu-tab-${name}`);
+        haptic(10);
     }
 
     _showOptions() {
         haptic(10);
         this.mainPanel.classList.add('hidden');
         this.optionsPanel.classList.remove('hidden');
+        this._switchMenuTab('options');
         this._setStatus('');
     }
 

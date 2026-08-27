@@ -6,6 +6,8 @@ import { Game } from './core/Game.js';
 import { UIManager } from './ui/UIManager.js';
 import { MainMenu } from './ui/MainMenu.js';
 import { UpdateManager } from './core/UpdateManager.js';
+import { Formatter } from './utils/Formatter.js';
+import { Options } from './core/Options.js';
 
 const game = new Game();
 const ui = new UIManager(game);
@@ -15,12 +17,6 @@ const updateManager = new UpdateManager(game.bus);
 game.updateManager = updateManager;
 
 game.init();
-
-// NPC-Leaderboard initial rendern
-renderNpcLeaderboard();
-
-// Expose für Debugging (nur dev)
-window.__IDLE_HACKER__ = { game, ui, menu, updateManager };
 
 // === Service Worker (PWA: Offline-Fähigkeit + sofortige Updates) ===
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
@@ -106,67 +102,85 @@ const npcLeaderboard = [
     { name: 'QuantumFool', prestigest: 2, totalBits: 250000, level: 'Hacker' },
     { name: 'PacketPusher', prestigest: 7, totalBits: 6500000, level: 'Singularity' },
     { name: 'RouterRebel', prestigest: 3, totalBits: 700000, level: 'Elite Hacker' },
+    { name: 'ZeroCool', prestigest: 10, totalBits: 18000000, level: 'Singularity' },
 ];
 
-/** Rendert das NPC-Leaderboard in die Stats-Seite. */
+let lbMode = 'alltime'; // 'alltime' | 'current'
+
+/** Rendert das NPC-Leaderboard in die Stats-Seite — dynamische Werte + Spieler. */
 function renderNpcLeaderboard() {
-    const position = game.getNpcLeaderboardPosition(npcLeaderboard);
+    const effective = game.getEffectiveNpcLeaderboard(npcLeaderboard);
+    const isCurrent = lbMode === 'current';
+    const username = (Options.get('username') || '').trim() || 'Du';
+    const playerEntry = {
+        name: username,
+        isPlayer: true,
+        effectivePrestige: game.prestige.totalPrestiges,
+        effectiveBits: game.economy.totalEarned,
+        effectiveCurrentBits: game.economy.bits,
+    };
+    const withPlayer = [...effective, playerEntry];
+    const sorted = [...withPlayer].sort((a, b) => {
+        if (isCurrent) return b.effectiveCurrentBits - a.effectiveCurrentBits;
+        if (b.effectivePrestige !== a.effectivePrestige) return b.effectivePrestige - a.effectivePrestige;
+        return b.effectiveBits - a.effectiveBits;
+    });
+    const position = sorted.findIndex(e => e.isPlayer) + 1;
     const listEl = document.getElementById('npc-list');
     const ownEl = document.getElementById('own-npc-rank');
+    const colPrestige = document.getElementById('lb-col-prestige');
+    const colBits = document.getElementById('lb-col-bits');
+    if (!listEl || !ownEl) return;
+    if (colPrestige) colPrestige.textContent = isCurrent ? '—' : 'Prestige';
+    if (colBits) colBits.textContent = isCurrent ? 'Aktuell' : 'All-Time';
 
-    // Liste leeren & NPCs einfügen
     listEl.innerHTML = '';
-    npcLeaderboard.forEach((npc, idx) => {
+    sorted.forEach((npc, idx) => {
         const li = document.createElement('li');
-        li.style.cssText = 'padding: 0.25rem 0; border-bottom: 1px solid #2a2a3a;';
-        li.innerHTML = `<span style="width: 50%;">${idx + 1}. ${npc.name}</span>
-                        <span style="width: 20%; text-align: right;">#${npc.prestigest}</span>
-                        <span style="width: 30%; text-align: right;">${Formatter.formatFull(npc.totalBits)}</span>`;
+        if (npc.isPlayer) li.classList.add('is-player');
+        else if (idx === 0) li.classList.add('top1');
+        else if (idx === 1) li.classList.add('top2');
+        else if (idx === 2) li.classList.add('top3');
+        const prestigeVal = isCurrent ? (npc.isPlayer ? '—' : '—') : `${npc.effectivePrestige} ◆`;
+        const bitsVal = Formatter.formatFull(isCurrent ? npc.effectiveCurrentBits : npc.effectiveBits);
+        li.innerHTML = `<span class="npc-rank">#${idx + 1}</span>
+                        <span class="npc-name">${npc.name}</span>
+                        <span class="npc-prestige">${prestigeVal}</span>
+                        <span class="npc-bits">${bitsVal}</span>`;
         listEl.appendChild(li);
     });
-
-    // Eigene Position setzen (1-20)
     ownEl.textContent = position;
+    document.querySelectorAll('.lb-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lbTab === lbMode);
+    });
 }
 
-// Optional: Position aktualisieren, wenn sich Stats ändern (hier einfach beim Focus-Event)
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
+// Tab-Wechsel
+document.querySelectorAll('.lb-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+        lbMode = btn.dataset.lbTab;
         renderNpcLeaderboard();
-    }
+    });
+});
+
+// Live-Update: Rangliste wächst mit Spieler (Gummiband)
+game.bus.on('economy:changed', () => renderNpcLeaderboard());
+game.bus.on('prestige:changed', () => renderNpcLeaderboard());
+game.bus.on('prestige:committed', () => renderNpcLeaderboard());
+game.bus.on('game:tick', () => {
+    if (document.getElementById('tab-leaderboard')?.classList.contains('active')) renderNpcLeaderboard();
+});
+
+// Fallback: bei Tab-Fokus
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') renderNpcLeaderboard();
 });
 
 /** Exposiert an game-Objekt für potentialen späteren Zugriff */
 game.npcLeaderboard = npcLeaderboard;
 
 /** Exposiert an window für Debugging */
-window.__IDLE_HACKER__.npcLeaderboard = npcLeaderboard;
+window.__IDLE_HACKER__ = { game, ui, menu, updateManager, npcLeaderboard, renderNpcLeaderboard };
 
-/** Rendert das NPC-Leaderboard in die Stats-Seite. */
-function renderNpcLeaderboard() {
-    const { npcLeaderboard } = GameConfig;
-    const position = game.getNpcLeaderboardPosition();
-    const listEl = document.getElementById('npc-list');
-    const ownEl = document.getElementById('own-npc-rank');
-
-    // Liste leeren & NPCs einfügen
-    listEl.innerHTML = '';
-    npcLeaderboard.forEach((npc, idx) => {
-        const li = document.createElement('li');
-        li.style.cssText = 'padding: 0.25rem 0; border-bottom: 1px solid #2a2a3a;';
-        li.innerHTML = `<span style="width: 50%;">${idx + 1}. ${npc.name}</span>
-                        <span style="width: 20%; text-align: right;">#${npc.prestigest}</span>
-                        <span style="width: 30%; text-align: right;">${Formatter.formatFull(npc.totalBits)}</span>`;
-        listEl.appendChild(li);
-    });
-
-    // Eigene Position setzen (1-20)
-    ownEl.textContent = position;
-}
-
-// Optional: Position aktualisieren, wenn sich Stats ändern (hier einfach beim Focus-Event)
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-        renderNpcLeaderboard();
-    }
-});
+// Initiales Rendern nach Definition (DOM ist bereit — Script steht am Body-Ende)
+renderNpcLeaderboard();

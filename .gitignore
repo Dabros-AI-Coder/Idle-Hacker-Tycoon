@@ -1,0 +1,12 @@
+# Deps
+node_modules/
+dist/
+# Tauri
+src-tauri/target/
+# Logs
+npm-debug.log*
+# OS
+.DS_Store
+Thumbs.db
+# Env
+.env

@@ -1,5 +1,5 @@
 {
-  "version": "0.4.4",
+  "version": "0.5.0",
   "build": 20260827,
-  "notes": "Content-Update: +7 Upgrades (Server Farm, Neural Overmind, Overclock III, Koffein IV, Kosten-Optimierer, Offline-Extender)"
+  "notes": "Polished Beta: Vite 6 + Tauri, dynamisches Leaderboard (All-Time/Aktuell + Spieler), Username-Pflicht, Offline 2min, In-Game Popup, P0 Save/Tutorial/CI"
 }

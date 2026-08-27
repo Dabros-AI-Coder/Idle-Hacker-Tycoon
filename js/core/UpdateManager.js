@@ -16,6 +16,9 @@ export class UpdateManager {
         this.versionUrl = versionUrl;
         this.storageKey = 'idle_hacker_update_dismissed';
         this.appliedKey = 'idle_hacker_update_applied';
+        this.lastCheckAt = 0;
+        this.cooldownMs = 60_000; // 1 Min Cooldown zwischen Checks
+        this.pendingWindowMs = 5 * 60_000; // 5 Min Schleifenschutz nach applyUpdate
     }
 
     isStandalone() {

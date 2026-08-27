@@ -35,6 +35,7 @@ export class Game {
         this._offlineEarning = 0;
         this._hiddenAt = null;
         this.offlineCapMultiplier = 1;
+        this._pendingOffline = null; // für Willkommen-zurück mit Bestätigen
         /** true sobald init() gelaufen ist (erst dann darf persistiert werden) */
         this.initialized = false;
 
@@ -63,20 +64,36 @@ export class Game {
 
     init() {
         if (this.initialized) return;
-        // Migration: v01 -> v02 — falls v02 leer aber v01 existiert
         let data = this.save.load();
+        const raw = this.save.loadRaw();
+        const hasRaw = typeof raw === 'string' && raw.length > 0;
+        // Korruption: raw da aber load null → ungültiges JSON/Shape
+        if (hasRaw && !data) {
+            this.bus.emit('save:corrupted', { key: this.save.key, raw });
+            // Nicht crashen — frisch starten, User entscheidet via UI ob Reset
+        }
         if (!data) {
             try {
                 const legacy = localStorage.getItem('idle_hacker_tycoon_v01');
                 if (legacy) {
-                    data = JSON.parse(legacy);
-                    // Sofort auf neuen Key migrieren (beim nächsten persist)
+                    const parsed = JSON.parse(legacy);
+                    if (parsed && parsed.economy && parsed.automation) data = parsed;
                 }
             } catch {}
         }
         if (data) {
-            data = this._migrate(data);
-            if (data) this._applyLoadedData(data);
+            const migrated = this._migrate(data);
+            if (migrated) {
+                try {
+                    this._applyLoadedData(migrated);
+                } catch (e) {
+                    console.warn('[Game] _applyLoadedData failed', e);
+                    this.bus.emit('save:corrupted', { key: this.save.key, error: String(e) });
+                }
+            } else {
+                // Zu neu — Save von neuerer Version
+                this.bus.emit('save:newer', { key: this.save.key, version: data.schemaVersion });
+            }
         }
         this.initialized = true;
         this.bus.emit('game:initialized', { offlineEarning: this._offlineEarning });
@@ -107,12 +124,12 @@ export class Game {
 
     /** Geladene Daten auf die Systeme anwenden (+ Offline-Ertrag). */
     _applyLoadedData(data) {
-        this.economy.load(data.economy);
-        this.automation.load(data.automation);
-        this.upgrades.load(data.upgrades);
-        this.prestige.load(data.prestige);
-        this.playtimeSec = data.playtimeSec || 0;
-        this.offlineCapMultiplier = data.offlineCapMultiplier || 1;
+        try { this.economy.load(data.economy); } catch (e) { console.warn('[Game] economy load failed', e); }
+        try { this.automation.load(data.automation); } catch (e) { console.warn('[Game] automation load failed', e); }
+        try { this.upgrades.load(data.upgrades); } catch (e) { console.warn('[Game] upgrades load failed', e); }
+        try { this.prestige.load(data.prestige); } catch (e) { console.warn('[Game] prestige load failed', e); }
+        this.playtimeSec = Number.isFinite(data.playtimeSec) ? data.playtimeSec : 0;
+        this.offlineCapMultiplier = Number.isFinite(data.offlineCapMultiplier) ? data.offlineCapMultiplier : 1;
         if (data.savedAt) {
             const elapsedSec = (Date.now() - data.savedAt) / 1000;
             this._grantOffline(elapsedSec, true);
@@ -136,7 +153,9 @@ export class Game {
     }
 
     /**
-     * Offline-/Catch-Up-Ertrag gutschreiben (auf offlineCapHours gedeckelt).
+     * Offline-/Catch-Up-Ertrag (auf offlineCapHours gedeckelt).
+     * isInit=true: erst ab 2 Min (120s) und Guthaben erst nach Bestätigen.
+     * isInit=false (Tab-Rückkehr): sofort wie bisher ab 10s.
      * @param {number} elapsedSec
      * @param {boolean} isInit - true beim Spielstart, false bei Tab-Rückkehr
      */
@@ -144,19 +163,48 @@ export class Game {
         if (!Options.get('offlineEarnings')) return;
         const maxHours = GameConfig.offlineCapHours * this.offlineCapMultiplier;
         const capped = Math.min(elapsedSec, maxHours * 3600);
-        if (capped < GameConfig.offlineCatchUpMinSec) return;
+        const threshold = isInit ? 120 : GameConfig.offlineCatchUpMinSec;
+        if (capped < threshold) return;
         const perSec = this.automation.getTotalPerSec();
         if (perSec <= 0) return;
         const amount = perSec * capped;
+        if (isInit) {
+            // Guthaben erst nach Bestätigen im Willkommen-Popup
+            this._pendingOffline = { amount, seconds: capped, perSec, capped: elapsedSec > capped };
+            this.bus.emit('game:offline', {
+                amount,
+                seconds: capped,
+                perSec,
+                capped: elapsedSec > capped,
+                isInit,
+                pending: true,
+                total: this._offlineEarning,
+            });
+            return;
+        }
         this.economy.addBits(amount);
         this._offlineEarning += amount;
         this.bus.emit('game:offline', {
             amount,
             seconds: capped,
+            perSec,
             capped: elapsedSec > capped,
             isInit,
             total: this._offlineEarning,
         });
+    }
+
+    /** Vom Willkommen-Popup nach Bestätigen aufrufen — addiert Offline-Ertrag. */
+    claimPendingOffline() {
+        if (!this._pendingOffline) return null;
+        const { amount } = this._pendingOffline;
+        this.economy.addBits(amount);
+        this._offlineEarning += amount;
+        const claimed = this._pendingOffline;
+        this._pendingOffline = null;
+        this.bus.emit('economy:changed', this.economy.snapshot());
+        this.persist();
+        return claimed;
     }
 
     tick(dt) {
@@ -286,25 +334,54 @@ export class Game {
         };
     }
 
-    /** Berechnet die eigene Position in der NPC-Rangliste (1-20). */
-    getNpcLeaderboardPosition(npcData = []) {
+    /**
+     * Liefert NPC-Liste mit dynamisch skalierten Werten (Gummiband).
+     * Prestige + Bits der NPCs wachsen mit Spieler-Fortschritt, damit Platz 1
+     * nie dauerhaft sicher ist. Basis bleibt in npcLeaderboard, Effektivwerte
+     * werden live berechnet. Für beide Modi: All-Time (totalEarned) und Aktuell (bits).
+     * @param {Array} baseList
+     * @returns {Array<{name,prestigest,totalBits,level,effectivePrestige,effectiveBits,effectiveCurrentBits}>}
+     */
+    getEffectiveNpcLeaderboard(baseList = []) {
         const own = this.getState();
-        const leaderboard = npcData.length > 0 ? npcData : (GameConfig.npcLeaderboard || []);
-        // Spieler mit mehr Prestiges weiter oben; bei Gleichstand bits als Tie-Breaker
-        const sorted = [...leaderboard].sort((a, b) => {
-            if (b.prestigest !== a.prestigest) return b.prestigest - a.prestigest;
-            return b.totalBits - a.totalBits;
+        const p = own.prestige.totalPrestiges;
+        const earned = own.economy.totalEarned;
+        const current = own.economy.bits;
+        return baseList.map(npc => {
+            const prestigeBoost = Math.floor(p * 0.32);
+            const effectivePrestige = npc.prestigest + prestigeBoost;
+            const effectiveBits = Math.floor(
+                npc.totalBits * (1 + p * 0.12) + earned * 0.18
+            );
+            // Aktuell: NPCs halten ~60% ihrer All-Time als "Kontostand", skaliert mit Prestige + Spieler-Current
+            const effectiveCurrentBits = Math.floor(
+                npc.totalBits * 0.62 * (1 + p * 0.08) + current * 0.22
+            );
+            return { ...npc, effectivePrestige, effectiveBits, effectiveCurrentBits };
         });
-        // Eigene Position ermitteln (1-indexiert)
-        let position = sorted.length + 1; // falls schlechter als alle NPCs
+    }
+
+    /** Berechnet die eigene Position in der NPC-Rangliste (1-20) — dynamisch. */
+    getNpcLeaderboardPosition(npcData = [], mode = 'alltime') {
+        const own = this.getState();
+        const base = npcData.length > 0 ? npcData : (GameConfig.npcLeaderboard || []);
+        const effective = this.getEffectiveNpcLeaderboard(base);
+        const isCurrent = mode === 'current';
+        const sorted = [...effective].sort((a, b) => {
+            if (isCurrent) return b.effectiveCurrentBits - a.effectiveCurrentBits;
+            if (b.effectivePrestige !== a.effectivePrestige) return b.effectivePrestige - a.effectivePrestige;
+            return b.effectiveBits - a.effectiveBits;
+        });
+        let position = sorted.length + 1;
         for (let i = 0; i < sorted.length; i++) {
-            // Spieler schlägt NPC i, wenn own.prestiges > NPC.prestigest
-            // oder same prestigest aber own.totalBits > NPC.totalBits
-            if (own.prestige.totalPrestiges > sorted[i].prestigest ||
-                (own.prestige.totalPrestiges === sorted[i].prestigest &&
-                 own.economy.totalEarned > sorted[i].totalBits)) {
-                position = i + 1;
-                break;
+            if (isCurrent) {
+                if (own.economy.bits > sorted[i].effectiveCurrentBits) { position = i + 1; break; }
+            } else {
+                if (own.prestige.totalPrestiges > sorted[i].effectivePrestige ||
+                    (own.prestige.totalPrestiges === sorted[i].effectivePrestige &&
+                     own.economy.totalEarned > sorted[i].effectiveBits)) {
+                    position = i + 1; break;
+                }
             }
         }
         return position;

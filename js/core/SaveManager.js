@@ -31,11 +31,29 @@ export class SaveManager {
         try {
             const raw = localStorage.getItem(this.key);
             if (!raw) return null;
-            return JSON.parse(raw);
+            const data = JSON.parse(raw);
+            // Basis-Validierung: erwartete Top-Level Keys
+            if (!data || typeof data !== 'object' || !data.economy || !data.automation) {
+                console.warn('[SaveManager] load: invalid shape', data);
+                return null;
+            }
+            return data;
         } catch (e) {
             console.warn('[SaveManager] load failed', e);
             return null;
         }
+    }
+
+    /** Liefert Roh-String für Korruptions-Erkennung (null wenn kein Save). */
+    loadRaw() {
+        try { return localStorage.getItem(this.key); } catch { return null; }
+    }
+
+    /** True wenn raw existiert aber load() null liefert (korrupt/ungültig). */
+    isCorrupted() {
+        const raw = this.loadRaw();
+        if (!raw) return false;
+        return this.load() === null;
     }
 
     clear() {

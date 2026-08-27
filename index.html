@@ -48,15 +48,44 @@
             </p>
 
             <div id="menu-options-panel" class="menu-panel hidden">
-                <label class="option-row" for="opt-haptics">
-                    <span>📳 Vibration</span>
-                    <input type="checkbox" id="opt-haptics" />
-                </label>
-                <label class="option-row" for="opt-offline">
-                    <span>🌙 Offline-Ertrag</span>
-                    <input type="checkbox" id="opt-offline" />
-                </label>
-                <button id="opt-reset-tutorial" class="btn menu-opt-btn">🎓 Tutorial erneut zeigen</button>
+                <div class="menu-subtabs">
+                    <button class="menu-subtab active" data-menu-tab="options">⚙ Optionen</button>
+                    <button class="menu-subtab" data-menu-tab="stats">📊 Statistiken</button>
+                </div>
+                <div id="menu-tab-options" class="menu-tab-content active">
+                    <label class="option-row" for="opt-username">
+                        <span>👤 Hacker-Name</span>
+                        <input type="text" id="opt-username" maxlength="16" placeholder="Name" autocomplete="off" spellcheck="false" style="width:140px; background:#0a0e1a; border:1px solid var(--border); border-radius:8px; color:var(--text); padding:6px 8px; font-size:0.85rem;" />
+                    </label>
+                    <label class="option-row" for="opt-haptics">
+                        <span>📳 Vibration</span>
+                        <input type="checkbox" id="opt-haptics" />
+                    </label>
+                    <label class="option-row" for="opt-offline">
+                        <span>🌙 Offline-Ertrag</span>
+                        <input type="checkbox" id="opt-offline" />
+                    </label>
+                    <button id="opt-reset-tutorial" class="btn menu-opt-btn">🎓 Tutorial erneut zeigen</button>
+                    <button id="btn-reset" class="btn btn-danger menu-opt-btn">🗑️ Fortschritt löschen</button>
+                </div>
+                <div id="menu-tab-stats" class="menu-tab-content hidden">
+                    <div class="card stats-card" style="margin:0; border:none; background:transparent; padding:0;">
+                        <h3>Statistiken</h3>
+                        <div class="stats-grid">
+                            <div><span>Bits gesamt</span><strong id="stat-total-earned">0</strong></div>
+                            <div><span>Klicks</span><strong id="stat-clicks">0</strong></div>
+                            <div><span>Spielzeit</span><strong id="stat-playtime">00:00</strong></div>
+                            <div><span>Offline Gewinn</span><strong id="stat-offline">0</strong></div>
+                            <div><span>Root-Keys</span><strong id="stat-prestige-points">0</strong></div>
+                            <div><span>Prestiges</span><strong id="stat-prestige-count">0</strong></div>
+                        </div>
+                        <div class="btn-row">
+                            <button id="btn-export" class="btn">💾 Spielstand exportieren</button>
+                            <button id="btn-import" class="btn">📥 Spielstand importieren</button>
+                        </div>
+                        <a id="feedback-link" class="feedback-link" href="https://github.com/Dabros-AI-Coder/Idle-Hacker-Tycoon/issues" target="_blank" rel="noopener">🐞 Bug gefunden oder Idee? Als Issue melden</a>
+                    </div>
+                </div>
                 <button id="menu-back" class="btn menu-opt-btn secondary">← Zurück</button>
             </div>
 
@@ -70,7 +99,7 @@
         <header id="header">
             <div class="header-left">
                 <h1 class="logo">IDLE<span>HACKER</span></h1>
-                <span class="subtitle">TYCOON v0.4</span>
+                <span class="subtitle">TYCOON v0.5</span>
             </div>
             <div class="header-right">
                 <div class="stat-box">
@@ -81,6 +110,7 @@
                     <span class="stat-label">/sec</span>
                     <span id="display-per-sec" class="stat-value small">0</span>
                 </div>
+                <button id="btn-to-menu" class="btn-header" title="Menü">☰</button>
             </div>
         </header>
 
@@ -113,7 +143,7 @@
                 <button class="tab-btn active" data-tab="generators">Server</button>
                 <button class="tab-btn" data-tab="upgrades">Upgrades</button>
                 <button class="tab-btn" data-tab="prestige">Root</button>
-                <button class="tab-btn" data-tab="stats">Stats</button>
+                <button class="tab-btn" data-tab="leaderboard">Rang</button>
             </nav>
 
             <!-- TAB CONTENTS -->
@@ -129,33 +159,22 @@
                 <div id="prestige-content"></div>
             </section>
 
-            <section id="tab-stats" class="tab-content">
-                <div class="card stats-card">
-                    <h3>Statistiken</h3>
-                    <div class="stats-grid">
-                        <div><span>Bits gesamt</span><strong id="stat-total-earned">0</strong></div>
-                        <div><span>Klicks</span><strong id="stat-clicks">0</strong></div>
-                        <div><span>Spielzeit</span><strong id="stat-playtime">00:00</strong></div>
-                        <div><span>Offline Gewinn</span><strong id="stat-offline">0</strong></div>
-                        <div><span>Root-Keys</span><strong id="stat-prestige-points">0</strong></div>
-                        <div><span>Prestiges</span><strong id="stat-prestige-count">0</strong></div>
+            <section id="tab-leaderboard" class="tab-content">
+                <div id="npc-leaderboard" class="card leaderboard-card">
+                    <div class="leaderboard-header">
+                        <div>
+                            <h3>👻 Fiktive Rangliste</h3>
+                            <p>Singleplayer-Motivation — offline, keine Online-Daten</p>
+                        </div>
+                        <div id="own-position" class="own-badge">Platz <span id="own-npc-rank">?</span> / 20</div>
                     </div>
-                    <div class="btn-row">
-                        <button id="btn-export" class="btn">💾 Spielstand exportieren</button>
-                        <button id="btn-import" class="btn">📥 Spielstand importieren</button>
+                    <div class="leaderboard-tabs">
+                        <button class="lb-tab active" data-lb-tab="alltime">All-Time</button>
+                        <button class="lb-tab" data-lb-tab="current">Aktuell</button>
                     </div>
-                    <a id="feedback-link" class="feedback-link" href="https://github.com/Dabros-AI-Coder/Idle-Hacker-Tycoon/issues" target="_blank" rel="noopener">🐞 Bug gefunden oder Idee? Als Issue melden</a>
-                    <button id="btn-reset" class="btn btn-danger">Fortschritt löschen</button>
-                </div>
-
-                <!-- NPC-Leaderboard (Single-Player Motivations-Hilfe) -->
-                <div id="npc-leaderboard" class="card" style="margin-top: 1rem; max-height: 200px; overflow: auto;">
-                    <h4>👻 Fiktive Rangliste</h4>
-                    <p>Mess dich mit den Geistern der Community</p>
-                    <ol id="npc-list"></ol>
-                    <p id="own-position" style="margin-top: 0.5rem; font-size: 0.9em; color: #888;">
-                        Du stehst auf Platz <span id="own-npc-rank">?</span> von 20
-                    </p>
+                    <div class="leaderboard-table-head"><span>#</span><span>Spieler</span><span id="lb-col-prestige">Prestige</span><span id="lb-col-bits">Bits</span></div>
+                    <ol id="npc-list" class="npc-list"></ol>
+                    <p class="leaderboard-footnote">19 NPCs • rein lokal • Singleplayer bleibt Singleplayer</p>
                 </div>
             </section>
         </main>
