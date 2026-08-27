@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Polished-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.6.0-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-0.7.0-00ff88?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
   <img src="https://img.shields.io/badge/Stack-Vite_Tauri-ffcc00?style=for-the-badge" alt="Vite Tauri" />
 </p>
@@ -58,6 +58,10 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | **🔊 Sound** | WebAudio Synth (Click/Buy/Prestige/Minigame), Toggle in Optionen, `AudioContext` resume |
 | **🏆 Achievements** | 10 Erfolge (First Hack, 1K/100K, Netz online, Server-Farm, Upgrader, Root bereit, Root-Zugriff, Sammler, Stammgast), Toast + persist |
 | **📅 Daily Bonus** | Täglich `500×Streak×Multi` (max 7), Streak via `lastClaim`, Claim in Erfolge-Tab |
+| **🎨 Themes** | Auto (System) + Dark/Light/Hacker-Green, `data-theme`, `prefers-color-scheme`, Toggle in Optionen |
+| **🛒 Bulk-Kauf** | Server-Kauf x1/x10/x100/Max, `getBulkCost`/`getMaxAffordable`/`buyBulk`, ROI-Anzeige |
+| **📄 Impressum** | Hobby-Projekt, localStorage nur lokal, Plausible anonym, Modal über *Impressum & Datenschutz* |
+| **🔄 Desktop-Updater** | Tauri `plugin-updater` + `plugin-process`, `latest.json` auf GitHub Releases, `check()`→`downloadAndInstall()`+`relaunch()` |
 | **⚡ Performance** | Fixer Tick (10/s) + `requestAnimationFrame`, Vite-Bundling, kein Framework-Overhead |
 
 ### Generatoren
@@ -162,27 +166,33 @@ Idle-Hacker-Tycoon/
 ├── .github/workflows/deploy.yml # Pages Deploy (npm ci → test → build → dist)
 ├── src-tauri/              # Tauri Rust (560×800, Icons)
 └── js/
-    ├── main.js             # Entry, --vh Fix, Standalone-Erkennung, Update-Schedule, Leaderboard-Tabs
+    ├── main.js             # Entry, --vh Fix, Standalone/Updater, Leaderboard-Tabs
     ├── config/
-    │   └── GameConfig.js   # ← Einzige Stelle für Balancing (v0.5.0)
+    │   └── GameConfig.js   # ← Einzige Stelle für Balancing (v0.7.0)
     ├── core/
-    │   ├── Game.js         # Facade: orchestriert Systeme, Loop, Save, Offline-Catch-Up (2min/pending), Gummiband-Leaderboard
-    │   ├── GameLoop.js     # fixer Tick via setInterval (läuft minimiert weiter) + rAF-Rendering
-    │   ├── Options.js      # Benutzeroptionen (Vibration, Offline, Username) — separates localStorage-Key
+    │   ├── Game.js         # Facade: Systeme, Loop, Save, Offline 2min/pending, Gummiband, Achievements/Daily
+    │   ├── GameLoop.js     # fixer Tick via setInterval + rAF
+    │   ├── Options.js      # Optionen (Vibration, Sound, Theme, Offline, Username) — separates Key
     │   ├── EventBus.js     # Pub/Sub
-    │   ├── SaveManager.js  # localStorage Wrapper + Shape-Validierung + isCorrupted()
-    │   └── UpdateManager.js# version.json Check (cooldown 1min, pending 5min), Update-Popup, Hard-Reload
+    │   ├── SaveManager.js  # localStorage + Shape-Validierung + isCorrupted()
+    │   └── UpdateManager.js# version.json Check, Hard-Reload, Tauri updater ergänzt
     ├── systems/
     │   ├── EconomySystem.js     # Bits, Transaktionen
-    │   ├── ClickSystem.js       # Tap-Logik, Multiplikatoren
-    │   ├── AutomationSystem.js  # Generatoren, Kostenformel
-    │   ├── UpgradeSystem.js     # Once-Buy, Unlock-Kette
-    │   └── PrestigeSystem.js    # Root-Zugriff: Reset + permanente Multiplikatoren
+    │   ├── ClickSystem.js       # Tap-Logik
+    │   ├── AutomationSystem.js  # Generatoren, Bulk x10/x100/Max
+    │   ├── UpgradeSystem.js     # Once-Buy
+    │   ├── PrestigeSystem.js    # Root-Zugriff
+    │   ├── AchievementSystem.js # 10 Erfolge
+    │   └── DailyRewardSystem.js # Streak 7, 500×Streak×Multi
     ├── ui/
-    │   ├── UIManager.js    # Rendering, Tabs, Toasts, Float-Text, Update/Offline/Corrupted-Modals, 4-Step Tutorial
-    │   └── MainMenu.js     # Hauptmenü: Spielen / Optionen / Beenden, Username-Pflicht, In-Game Popup, Rückkehr-Logik
+    │   ├── UIManager.js    # Rendering, Tabs, Daily/Erfolge, Bulk, Impressum, Modals
+    │   ├── MainMenu.js     # Hauptmenü, Username, Themes, In-Game Popup
+    │   └── HackMinigame.js # Timing-Bar alle 10 Hacks 3×
     └── utils/
-        ├── Formatter.js    # K/M/B/T, Zeit-Format
+        ├── Formatter.js    # K/M/B/T, Zeit
+        ├── haptics.js      # Vibration
+        ├── audio.js        # WebAudio Synth
+        └── simulate.js     # Headless Sim
         ├── haptics.js      # Zentrale Vibration (respektiert Optionen)
         └── simulate.js     # Headless Balance-Simulation (Node)
 ```
@@ -268,13 +278,13 @@ Die installierte App läuft ohne Browser-UI, blockiert Text-Manipulation und pr�
 - [x] **v0.4.4** — Balance-Cap: Prestige-Bonus capped at 50%, neue Upgrades (7 Stück)
 - [x] **v0.4.5** — NPC-Leaderboard (20 Positionen, Single-Player Motivations-Hilfe)
 - [x] **v0.5.0** — Polished Beta: Vite 6 + Tauri Desktop, dynamisches Gummiband-Leaderboard (All-Time/Aktuell + Spieler), Username-Pflicht (milchig), Offline 2min-Willkommen, In-Game Popup + Rückkehr, Statistiken→Optionen, Save-Korruptions-Fallback, 4-Step Tutorial, Pages-CI
-- [x] **v0.6.0** — P1: Hack-Minigame (alle 10 Hacks Timing-Bar 3×), Sound/Haptik (WebAudio, Options-Toggle), Achievements (10) + Daily (Streak 7, 500×Streak×Multi), Balance bis 100M validiert
-- [ ] **v0.7** — Themes (Light/Dark/Hacker-Green) + erweiterte Musik
+- [x] **v0.6.0** — P1: Hack-Minigame (alle 10 Hacks Timing-Bar 3×), Sound/Haptik (WebAudio, Options-Toggle), Achievements (10) + Daily (Streak 7), Balance bis 100M validiert
+- [x] **v0.7.0** — P2: Themes (Auto/Dark/Light/Hacker), Bulk-Kauf x10/x100/Max, Impressum/Datenschutz, Tauri Auto-Updater (latest.json)
 - [ ] **v1.0** — Cloud-Save (optional)
 
 Ideen & Bugs gerne als [Issue](../../issues) eröffnen!
 
-**Stand: v0.6.0** – P1: Minigame, Sound, Achievements/Daily, Balance validiert.
+**Stand: v0.7.0** – P2: Themes, Bulk, Impressum, Desktop-Updater.
 
 ---
 

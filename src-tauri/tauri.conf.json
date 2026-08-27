@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Idle Hacker Tycoon",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "identifier": "com.dabros.idle-hacker-tycoon",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -28,6 +28,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/icon.png",
       "icons/icon.ico"
@@ -37,6 +38,14 @@
       "nsis": {
         "installMode": "currentUser"
       }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IHBsYWNlaG9sZGVyIGtleSBnZW5lcmllcmUgbWl0IGB0YXVyaSBzaWduZXIgZ2VuZXJhdGUtYWBgaW4gc3JjLXRhdXJpL2tleXM=",
+      "endpoints": [
+        "https://github.com/Dabros-AI-Coder/Idle-Hacker-Tycoon/releases/latest/download/latest.json"
+      ]
     }
   }
 }

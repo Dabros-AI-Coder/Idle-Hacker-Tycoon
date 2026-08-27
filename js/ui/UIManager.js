@@ -15,6 +15,8 @@ export class UIManager {
         this.game = game;
         this.bus = game.bus;
         this.els = {};
+        this.bulkAmount = 1;
+        this.bulkOptions = [1, 10, 100, 'max'];
         this._bindElements();
         this._bindEvents();
         this._subscribe();
@@ -46,6 +48,7 @@ export class UIManager {
             tutorialText: $('tutorial-text'),
             btnTutorialSkip: $('btn-tutorial-skip'),
             feedbackLink: $('feedback-link'),
+            imprintLink: $('imprint-link'),
             toastContainer: $('toast-container'),
             dailyCard: $('daily-card'),
             achievementsList: $('achievements-list'),
@@ -113,6 +116,7 @@ export class UIManager {
 
         // Tutorial
         if (this.els.btnTutorialSkip) this.els.btnTutorialSkip.addEventListener('click', () => this._finishTutorial(true));
+        if (this.els.imprintLink) this.els.imprintLink.addEventListener('click', (e) => { e.preventDefault(); this._showImprintModal(); });
 
         // Verhindere Zoom bei Doppel-Tap auf iOS (zusätzlich zu viewport)
         document.addEventListener('touchstart', (e) => {
@@ -622,6 +626,27 @@ export class UIManager {
         });
     }
 
+    _showImprintModal() {
+        if (document.querySelector('.modal.imprint-modal')) return;
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `
+            <div class="modal imprint-modal" style="max-height:80vh; overflow:auto; text-align:left;">
+                <h3>📄 Impressum & Datenschutz</h3>
+                <p><strong>Idle Hacker Tycoon</strong> — Hobby-Projekt von Dabros-AI-Coder.<br>Kein kommerzieller Anbieter, keine Registrierung nötig.</p>
+                <p><strong>Kontakt:</strong> <a href="https://github.com/Dabros-AI-Coder/Idle-Hacker-Tycoon/issues" target="_blank">GitHub Issues</a></p>
+                <p><strong>Datenschutz:</strong><br>• Spielstand, Optionen, Name, täglicher Streak liegen nur in deinem <code>localStorage</code> (kein Server).<br>• Kein Tracking außer optional Plausible (anonym, kein Cookie, Domain <code>dabros-ai-coder.github.io</code>).<br>• PWA speichert Assets im Cache, Service Worker nur Network-First.</p>
+                <p><strong>Offline:</strong> Berechnet lokal aus <code>savedAt</code> + <code>perSec</code>, 12h Cap, 2min Willkommen-Popup.</p>
+                <p style="color:var(--text-dim); font-size:0.72rem;">Stand 0.6.0 — MIT Lizenz.</p>
+                <div class="modal-actions"><button class="btn-modal primary" data-action="close">Schließen</button></div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        const close = () => overlay.remove();
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+        overlay.querySelector('[data-action="close"]').addEventListener('click', close);
+    }
+
     renderGenerators() {
         const states = this.game.automation.getAllStates();
         const totalPerSec = this.game.automation.getTotalPerSec();
@@ -649,14 +674,25 @@ export class UIManager {
                 ? 'Initialisiere Knoten...'
                 : `Mining ${Formatter.formatPerSec(totalPerSec)} Bits/sec · ${totalOwned} Knoten online · Uptime ${Formatter.formatTime(this.game.playtimeSec)}`;
 
-        // --- Generator Items ---
+        // --- Bulk Selector ---
+        const bulkHtml = `<div class="bulk-selector">
+            <span>Anzahl:</span>
+            ${this.bulkOptions.map(opt => `<button class="bulk-btn ${String(this.bulkAmount)===String(opt)?'active':''}" data-bulk="${opt}">x${opt}</button>`).join('')}
+        </div>`;
+
+        // --- Generator Items (mit Bulk) ---
         const itemsHtml = states.map((s, idx) => {
             const share = totalPerSec > 0 ? (s.perSec / totalPerSec) * 100 : 0;
             const tierLabel = `T${idx + 1}`;
             const roi = s.def.basePerSec > 0 ? (s.cost / (s.def.basePerSec * (this.game.automation.genMultipliers.get(s.def.id) || 1) * this.game.automation.globalMultiplier)) : 0;
-            const roiText = s.owned === 0 && s.def.basePerSec > 0 ? ` · Amortisation ~${Math.ceil(roi)}s` : '';
+            const roiText = s.owned === 0 && s.def.basePerSec > 0 ? ` · ROI ~${Math.ceil(roi)}s` : '';
+            const isMax = this.bulkAmount === 'max';
+            const bulkAmt = isMax ? this.game.automation.getMaxAffordable(s.def.id) : Number(this.bulkAmount);
+            const bulkCost = isMax ? this.game.automation.getBulkCost(s.def.id, bulkAmt) : this.game.automation.getBulkCost(s.def.id, bulkAmt);
+            const canAffordBulk = bulkAmt > 0 && this.game.economy.bits >= bulkCost;
+            const btnLabel = isMax ? (bulkAmt > 0 ? `Max x${bulkAmt} · ${Formatter.formatBits(bulkCost)}` : 'Max') : `${Formatter.formatBits(bulkCost)} ${bulkAmt>1?`x${bulkAmt}`:''}`;
             return `
-            <div class="item ${s.canAfford ? 'can-afford' : ''}" data-id="${s.def.id}">
+            <div class="item ${canAffordBulk ? 'can-afford' : ''}" data-id="${s.def.id}">
                 <div class="item-icon">${s.def.icon}</div>
                 <div class="item-info">
                     <div class="item-name">${s.def.name}<span class="item-tier">${tierLabel}</span></div>
@@ -666,8 +702,8 @@ export class UIManager {
                     <div class="item-progress" title="Anteil am Gesamt-Output"><div class="item-progress-fill" style="width:${share.toFixed(1)}%"></div></div>
                 </div>
                 <div class="item-owned">x${s.owned}</div>
-                <button class="btn-buy" data-buy="${s.def.id}" ${s.canAfford ? '' : 'disabled'}>
-                    ${Formatter.formatBits(s.cost)} Bits
+                <button class="btn-buy" data-buy="${s.def.id}" ${canAffordBulk ? '' : 'disabled'}>
+                    ${btnLabel}
                 </button>
             </div>`;
         }).join('');
@@ -688,14 +724,25 @@ export class UIManager {
                 <div class="server-rack">${rackHtml}</div>
                 <div class="server-terminal">${terminalLine}</div>
             </div>
+            ${bulkHtml}
             ${emptyHint}
             ${itemsHtml}
         `;
 
+        for (const btn of this.els.generatorsList.querySelectorAll('[data-bulk]')) {
+            btn.addEventListener('click', () => {
+                this.bulkAmount = btn.dataset.bulk === 'max' ? 'max' : Number(btn.dataset.bulk);
+                this.renderGenerators();
+                haptic(10); audio.click();
+            });
+        }
         for (const btn of this.els.generatorsList.querySelectorAll('[data-buy]')) {
             btn.addEventListener('click', () => {
-                const ok = this.game.automation.buy(btn.dataset.buy);
-                if (!ok) { this.toast('Nicht genug Bits!'); audio.buyFail(); }
+                const id = btn.dataset.buy;
+                let bought = 0;
+                if (this.bulkAmount === 'max') bought = this.game.automation.buyBulk(id, 'max');
+                else bought = this.game.automation.buyBulk(id, Number(this.bulkAmount));
+                if (!bought) { this.toast('Nicht genug Bits!'); audio.buyFail(); }
                 else { haptic(10); audio.buy(); }
             });
         }
@@ -746,12 +793,13 @@ export class UIManager {
     }
 
     _updateAffordability() {
-        // Buttons disablen/enablen ohne kompletten Neuaufbau — für 60fps freundlich
         const bits = this.game.economy.bits;
+        const isMax = this.bulkAmount === 'max';
         for (const el of this.els.generatorsList.querySelectorAll('.item')) {
             const id = el.dataset.id;
-            const cost = this.game.automation.getCost(id);
-            const can = bits >= cost;
+            const bulkAmt = isMax ? this.game.automation.getMaxAffordable(id) : Number(this.bulkAmount);
+            const cost = isMax ? this.game.automation.getBulkCost(id, bulkAmt) : this.game.automation.getBulkCost(id, bulkAmt);
+            const can = bulkAmt > 0 && bits >= cost;
             el.classList.toggle('can-afford', can);
             const btn = el.querySelector('.btn-buy');
             if (btn) btn.disabled = !can;

@@ -3,6 +3,7 @@ node_modules/
 dist/
 # Tauri
 src-tauri/target/
+src-tauri/keys/
 # Logs
 npm-debug.log*
 # OS

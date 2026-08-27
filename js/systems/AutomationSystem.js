@@ -64,8 +64,42 @@ export class AutomationSystem {
         return Math.floor(def.baseCost * Math.pow(def.costMultiplier * this.costReduction, owned));
     }
 
+    getBulkCost(id, amount) {
+        const def = GameConfig.getGenerator(id);
+        if (!def || amount <= 0) return 0;
+        const owned = this.owned.get(id) || 0;
+        let total = 0;
+        for (let i = 0; i < amount; i++) {
+            total += Math.floor(def.baseCost * Math.pow(def.costMultiplier * this.costReduction, owned + i));
+            if (!Number.isFinite(total) || total > 1e18) break;
+        }
+        return total;
+    }
+
+    getMaxAffordable(id) {
+        const def = GameConfig.getGenerator(id);
+        if (!def) return 0;
+        const bits = this.economy.bits;
+        let owned = this.owned.get(id) || 0;
+        let total = 0;
+        let count = 0;
+        // cap at 100 to avoid infinite loop
+        while (count < 100) {
+            const cost = Math.floor(def.baseCost * Math.pow(def.costMultiplier * this.costReduction, owned + count));
+            if (total + cost > bits) break;
+            total += cost;
+            count++;
+        }
+        return count;
+    }
+
     canBuy(id) {
         return this.economy.canAfford(this.getCost(id));
+    }
+
+    canBuyBulk(id, amount) {
+        if (amount <= 0) return false;
+        return this.economy.canAfford(this.getBulkCost(id, amount));
     }
 
     buy(id) {
@@ -75,6 +109,19 @@ export class AutomationSystem {
         this.bus.emit('automation:bought', { id, owned: this.owned.get(id), cost });
         this.bus.emit('economy:changed', this.economy.snapshot());
         return true;
+    }
+
+    buyBulk(id, amount) {
+        if (amount === 'max' || amount === Infinity) amount = this.getMaxAffordable(id);
+        amount = Math.floor(Number(amount) || 0);
+        if (amount <= 0) return 0;
+        const cost = this.getBulkCost(id, amount);
+        if (!this.economy.canAfford(cost)) return 0;
+        if (!this.economy.spendBits(cost)) return 0;
+        this.owned.set(id, (this.owned.get(id) || 0) + amount);
+        this.bus.emit('automation:bought', { id, owned: this.owned.get(id), cost, amount });
+        this.bus.emit('economy:changed', this.economy.snapshot());
+        return amount;
     }
 
     getTotalPerSec() {

@@ -1,5 +1,5 @@
 {
-  "version": "0.6.0",
+  "version": "0.7.0",
   "build": 20260827,
-  "notes": "P1: Sound/Haptik, Achievements + Daily, Hack-Minigame (Timing), Balance validiert"
+  "notes": "P2: Themes (Light/Dark/Hacker), Bulk-Kauf x10/x100/Max, Impressum, Tauri Auto-Updater"
 }

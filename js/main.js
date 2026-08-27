@@ -66,6 +66,24 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
+// Tauri Auto-Updater (Desktop) — prüft GitHub Releases via updater plugin
+if (window.__TAURI__ || navigator.userAgent.includes('Tauri')) {
+    setTimeout(async () => {
+        try {
+            const { check } = await import('@tauri-apps/plugin-updater');
+            const update = await check();
+            if (update) {
+                const { relaunch } = await import('@tauri-apps/plugin-process');
+                // Nutze UIManager Toast wenn verfügbar, sonst confirm
+                if (confirm(`Update ${update.version} verfügbar\n${update.body || ''}\nJetzt installieren?`)) {
+                    await update.downloadAndInstall();
+                    await relaunch();
+                }
+            }
+        } catch (e) { console.warn('[updater] check failed (offline oder kein Release)', e); }
+    }, 3500);
+}
+
 // Blockiere Browser-Defaults nur im Standalone-Modus
 const blockIfStandalone = (e) => {
     if (!isStandalone()) return;

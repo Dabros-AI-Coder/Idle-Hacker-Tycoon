@@ -46,6 +46,18 @@ export class MainMenu {
         document.getElementById('opt-haptics').checked = Options.get('haptics');
         document.getElementById('opt-offline').checked = Options.get('offlineEarnings');
         document.getElementById('opt-sound').checked = Options.get('sound');
+        const themeSel = document.getElementById('opt-theme');
+        if (themeSel) {
+            themeSel.value = Options.get('theme') || 'auto';
+            this._applyTheme(themeSel.value);
+            themeSel.addEventListener('change', (e) => {
+                Options.set('theme', e.target.value);
+                this._applyTheme(e.target.value);
+                haptic(10);
+            });
+        } else {
+            this._applyTheme(Options.get('theme'));
+        }
         document.getElementById('opt-haptics').addEventListener('change', (e) => {
             Options.set('haptics', e.target.checked);
             haptic(15);
@@ -236,10 +248,14 @@ export class MainMenu {
         overlay.addEventListener('click', (e) => { if (e.target === overlay) { haptic(10); input.focus(); } });
     }
 
+    _applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme || 'auto');
+        try { document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#f1f5f9' : theme === 'hacker' ? '#001100' : '#0a0e1a'); } catch {}
+    }
+
     _switchMenuTab(name) {
         for (const b of this.menuSubtabs) b.classList.toggle('active', b.dataset.menuTab === name);
         for (const c of this.menuTabContents) c.classList.toggle('active', c.id === `menu-tab-${name}`);
-        // hidden-Klasse für Kompatibilität
         for (const c of this.menuTabContents) c.classList.toggle('hidden', c.id !== `menu-tab-${name}`);
         haptic(10);
     }
