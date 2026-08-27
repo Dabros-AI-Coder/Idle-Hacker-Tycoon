@@ -13,10 +13,18 @@ export class ClickSystem {
         this.economy = economy;
         this.clickMultiplier = 1;
         this.prestigeMultiplier = 1;
+        /** Additiver Bonus aus Prestige-Shop 'click_mult_add' — überlebt Prestige-Reset. */
+        this.shopClickBonus = 0;
 
         bus.on('upgrade:applied', ({ effect }) => {
             if (effect.type === 'click_mult') {
                 this.clickMultiplier *= effect.value;
+                this.bus.emit('click:changed', { value: this.getClickValue() });
+            }
+        });
+        bus.on('prestigeshop:applied', ({ effect, delta }) => {
+            if (effect.type === 'click_mult_add') {
+                this.shopClickBonus += delta;
                 this.bus.emit('click:changed', { value: this.getClickValue() });
             }
         });
@@ -30,7 +38,7 @@ export class ClickSystem {
     }
 
     getClickValue() {
-        return GameConfig.baseClickValue * this.clickMultiplier * this.prestigeMultiplier;
+        return GameConfig.baseClickValue * this.clickMultiplier * this.prestigeMultiplier * (1 + this.shopClickBonus);
     }
 
     hack() {

@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Polished-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Version-0.8.0-00ff88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-0.9.0-00ff88?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/PWA-installierbar-131a2e?style=for-the-badge" alt="PWA" />
   <img src="https://img.shields.io/badge/Stack-Vite_Tauri-ffcc00?style=for-the-badge" alt="Vite Tauri" />
 </p>
@@ -41,6 +41,7 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 | **⬆️ 29 Upgrades** | Klick- & Generator-Boosts (1 pro Generator), 5 globale Übertaktungsstufen, Unlock-Ketten; Balance-capped Prestige-Multiplikator |
 | **📈 Level-System** | 9 Ränge von *Script Kiddie* bis *Singularity* (bis 1B total) mit Progress-Bar |
 | **👑 Prestige (Root-Zugriff)** | Ab 1M `totalEarned` resetten → 1 Punkt pro 1M, **+5 % Global-Multiplikator pro Punkt** (capped at 50%), permanent |
+| **💾 CPU-Chip-Shop** | Zweitwährung aus Prestige, 6 leveled Permanent-Upgrades (Root-Tab), überlebt normalen Reset — löst das "Prestige verliert nach 2-3 Runs an Spannung"-Problem des reinen Auto-Multiplikators |
 | **👻 Fiktive Rangliste** | 20 Plätze (19 NPCs + Du, `DU`-Badge), Gummiband: NPCs skalieren mit `+32% Prestige` + `12% Bits/Prestige` + `18% totalEarned` (All-Time) bzw. `22% aktuell`, 2 Tabs *All-Time / Aktuell*, Top-3 Gold/Silber/Bronze |
 | **📊 Statistiken** | Aus `Stats`-Tab in Hauptmenü → Optionen → Statistiken verschoben; letzter In-Game-Tab ist jetzt reine Rangliste |
 | **📱 PWA** | Installierbar (`manifest.json`, Icons), Standalone-Erkennung, Browser-Schutz (kein Rechtsklick/Markieren/Kopieren in der App) |
@@ -126,6 +127,19 @@ Kein Pay-to-Win, kein Backend nötig. Alles läuft lokal im Browser, speichert a
 
 > Zielkurven (headless validiert via `js/utils/simulate.js`, 5 Klicks/s, greedy): erstes Prestige ~14 min, Satelliten-Uplink ~51 min, Neural Overmind ~75 min, Singularitäts-Kern ~88 min — mit Prestige-Multiplikatoren entsprechend schneller.
 
+#### 💾 CPU-Chip-Shop (Zweitwährung, überlebt Prestige)
+
+Der Multiplikator aus Root-Keys ist bei ×1.5 gedeckelt — sonst würde Root-Zugriff nach wenigen Durchläufen jede Spannung verlieren. Deshalb gibt's zusätzlich **CPU-Chips**: bei jedem Root-Zugriff im gleichen Umfang wie Root-Keys gutgeschrieben, aber **ausgegeben** statt automatisch verrechnet — im permanenten Shop im Root-Tab. Käufe bleiben über jeden normalen Reset hinweg erhalten (nur ein kompletter Save-Wipe löscht sie), Kosten steigen pro Stufe geometrisch (`baseCost × costMultiplier^level`).
+
+| Icon | Name | Effekt/Stufe | Max-Level | Basiskosten |
+|---|---|---|---:|---:|
+| 🔑 | Root-Protokoll | +5% alle Server | 30 | 2 |
+| 🧠 | Neuronale Beschleunigung | +10% Klick-Power | 20 | 1 |
+| 📈 | Effiziente Extraktion | +10% Root-Keys & Chips pro Prestige | 15 | 5 |
+| 💼 | Notfall-Fonds | +50.000 Start-Bits nach Reset | 10 | 3 |
+| 🌙 | Autonomie-Kern | +25% Offline-Cap | 8 | 4 |
+| 💰 | Schwarzmarkt-Kontakte | Generator-Kosten -2% (max. -50%) | 10 | 6 |
+
 ---
 
 ## 🚀 Quickstart
@@ -182,7 +196,7 @@ Idle-Hacker-Tycoon/
 └── js/
     ├── main.js             # Entry, --vh Fix, Standalone/Updater, Leaderboard-Tabs
     ├── config/
-    │   └── GameConfig.js   # ← Einzige Stelle für Balancing (v0.8.0)
+    │   └── GameConfig.js   # ← Einzige Stelle für Balancing (v0.9.0)
     ├── core/
     │   ├── Game.js         # Facade: Systeme, Loop, Save, Offline 2min/pending, Gummiband, Achievements/Daily
     │   ├── GameLoop.js     # fixer Tick via setInterval + rAF
@@ -295,11 +309,12 @@ Die installierte App läuft ohne Browser-UI, blockiert Text-Manipulation und pr�
 - [x] **v0.6.0** — P1: Hack-Minigame (alle 10 Hacks Timing-Bar 3×), Sound/Haptik (WebAudio, Options-Toggle), Achievements (10) + Daily (Streak 7), Balance bis 100M validiert
 - [x] **v0.7.0** — P2: Themes (Auto/Dark/Light/Hacker), Bulk-Kauf x10/x100/Max, Impressum/Datenschutz, Tauri Auto-Updater (latest.json)
 - [x] **v0.8.0** — Längere Progression: 9 neue Generatoren (8→17), 11 neue Upgrades (Ø 1 pro neuem Generator + Übertaktung IV/V), Achievement „Netzwerk komplett“
+- [x] **v0.9.0** — CPU-Chip-Shop: Prestige-Zweitwährung mit 6 leveled Permanent-Upgrades, überlebt normale Resets — hält Root-Zugriff auch nach vielen Durchläufen spannend
 - [ ] **v1.0** — Cloud-Save (optional)
 
 Ideen & Bugs gerne als [Issue](../../issues) eröffnen!
 
-**Stand: v0.8.0** – Längere Progression: 17 Generatoren, 29 Upgrades.
+**Stand: v0.9.0** – 17 Generatoren, 29 Upgrades, CPU-Chip-Shop.
 
 ---
 

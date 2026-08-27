@@ -41,6 +41,7 @@ export class UIManager {
             statOffline: $('stat-offline'),
             statPrestigePoints: $('stat-prestige-points'),
             statPrestigeCount: $('stat-prestige-count'),
+            statChips: $('stat-chips'),
             btnReset: $('btn-reset'),
             btnExport: $('btn-export'),
             btnImport: $('btn-import'),
@@ -137,7 +138,7 @@ export class UIManager {
         this.bus.on('upgrade:bought', () => { this.renderUpgrades(); this.renderGenerators(); });
         this.bus.on('prestige:changed', () => { this.renderPrestige(); this.renderEconomy(); this.renderGenerators(); });
         this.bus.on('prestige:committed', ({ gain, multiplier }) => {
-            this.toast(`Root-Zugriff! +${gain} Keys · ×${multiplier.toFixed(2)} Multiplikator`);
+            this.toast(`Root-Zugriff! +${gain} Keys · +${gain} 💾 Chips · ×${multiplier.toFixed(2)} Multiplikator`);
             audio.prestige();
             haptic([20, 30, 20]);
             this.renderAll();
@@ -215,6 +216,7 @@ export class UIManager {
         this.els.statOffline.textContent = Formatter.formatBits(this.game.getState().offlineEarning);
         if (this.els.statPrestigePoints) this.els.statPrestigePoints.textContent = String(this.game.prestige.points);
         if (this.els.statPrestigeCount) this.els.statPrestigeCount.textContent = String(this.game.prestige.totalPrestiges);
+        if (this.els.statChips) this.els.statChips.textContent = Formatter.formatFull(this.game.prestige.totalChipsEarned);
         // Prestige Fortschritt live ticken
         if (this.els.prestigeContent && document.getElementById('tab-prestige')?.classList.contains('active')) {
             this.renderPrestige();
@@ -288,6 +290,7 @@ export class UIManager {
                     <div class="prestige-stat"><span>Root-Keys</span><strong>${snap.points}</strong></div>
                     <div class="prestige-stat"><span>Multiplikator</span><strong class="accent">×${snap.multiplier.toFixed(2)}</strong></div>
                     <div class="prestige-stat"><span>Nächste Keys</span><strong>+${pending}</strong></div>
+                    <div class="prestige-stat"><span>💾 CPU-Chips</span><strong>${Formatter.formatFull(snap.chips)}</strong></div>
                 </div>
                 <div class="prestige-progress">
                     <div class="prestige-progress-label"><span>Fortschritt</span><strong>${fmt(total)} / ${fmt(threshold)}</strong></div>
@@ -301,6 +304,7 @@ export class UIManager {
                 <button id="btn-prestige" class="btn-prestige ${can ? 'ready' : ''}" ${can ? '' : 'disabled'}>
                     ${can ? `ROOT-ZUGRIFF — +${pending} Keys freischalten` : `Gesperrt — ${fmt(threshold)} benötigt`}
                 </button>
+                ${this._renderPrestigeShop(snap.chips)}
             </div>
         `;
         const btn = document.getElementById('btn-prestige');
@@ -310,6 +314,41 @@ export class UIManager {
                 this._showPrestigeModal(pending, nextMult);
             });
         }
+        for (const shopBtn of this.els.prestigeContent.querySelectorAll('[data-shopbuy]')) {
+            shopBtn.addEventListener('click', () => {
+                const ok = this.game.prestigeShop.buy(shopBtn.dataset.shopbuy);
+                if (ok) {
+                    this.toast('CPU-Chip-Upgrade gekauft!');
+                    haptic(15);
+                    audio.buy();
+                    this.renderPrestige();
+                    this.renderEconomy();
+                    this.renderGenerators();
+                } else {
+                    audio.buyFail();
+                }
+            });
+        }
+    }
+
+    /** Prestige-Shop: permanente, ausgebbare CPU-Chip-Upgrades (überleben Prestige-Reset). */
+    _renderPrestigeShop(chips) {
+        const states = this.game.prestigeShop.getAllStates();
+        const items = states.map(s => {
+            const label = s.maxed ? 'Max' : `${Formatter.formatFull(s.cost)} 💾`;
+            return `<div class="item ${!s.maxed && s.canAfford ? 'can-afford' : ''}" style="${s.maxed ? 'opacity:0.7' : ''}">
+                <div class="item-icon">${s.def.icon}</div>
+                <div class="item-info">
+                    <div class="item-name">${s.def.name}<span class="item-tier">Lv.${s.level}/${s.def.maxLevel}</span></div>
+                    <div class="item-desc">${s.def.description}</div>
+                </div>
+                <button class="btn-buy" data-shopbuy="${s.def.id}" ${s.maxed || !s.canAfford ? 'disabled' : ''}>${label}</button>
+            </div>`;
+        }).join('');
+        return `<div class="prestige-shop" style="margin-top:16px;">
+            <h4>💾 CPU-Chip-Shop <span style="color:var(--text-dim);font-weight:400;font-size:0.78rem;">— Guthaben: ${Formatter.formatFull(chips)} (überlebt Root-Zugriff)</span></h4>
+            ${items}
+        </div>`;
     }
 
     /** Meilenstein-Liste für den Prestige-Tab */

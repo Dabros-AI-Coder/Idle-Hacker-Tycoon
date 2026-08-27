@@ -3,7 +3,7 @@
  * Modular: jede Balance-Änderung nur hier.
  */
 export const GameConfig = Object.freeze({
-    version: '0.8.0',
+    version: '0.9.0',
     saveKey: 'idle_hacker_tycoon_v02',
     // Version des Save-Schemas (unabhängig vom localStorage-Key).
     // Bei Schema-Änderungen: hier erhöhen + Migration in Game.MIGRATIONS ergänzen.
@@ -444,6 +444,23 @@ export const GameConfig = Object.freeze({
         },
     ],
 
+    /**
+     * Prestige-Shop — permanenter Zweitwährungs-Shop (CPU-Chips).
+     * Käufe überleben normale Prestige-Resets (nur Save-Wipe löscht sie).
+     * effect.type: 'global_mult_add' | 'click_mult_add' | 'cost_reduction_add'
+     *              (laufen additiv als Bonus in Automation/ClickSystem)
+     *            | 'prestige_gain_mult' (erhöht Root-Keys+Chips-Gewinn pro Prestige)
+     *            | 'start_bits_add' | 'offline_cap_add' (on-demand aus levels berechnet)
+     */
+    prestigeShop: [
+        { id: 'sp_global', name: 'Root-Protokoll', icon: '🔑', description: '+5% auf alle Server pro Stufe', baseCost: 2, costMultiplier: 1.6, maxLevel: 30, effect: { type: 'global_mult_add', perLevel: 0.05 } },
+        { id: 'sp_click', name: 'Neuronale Beschleunigung', icon: '🧠', description: '+10% Klick-Power pro Stufe', baseCost: 1, costMultiplier: 1.5, maxLevel: 20, effect: { type: 'click_mult_add', perLevel: 0.10 } },
+        { id: 'sp_gain', name: 'Effiziente Extraktion', icon: '📈', description: '+10% Root-Keys & CPU-Chips pro Prestige, pro Stufe', baseCost: 5, costMultiplier: 1.8, maxLevel: 15, effect: { type: 'prestige_gain_mult', perLevel: 0.10 } },
+        { id: 'sp_start', name: 'Notfall-Fonds', icon: '💼', description: '+50.000 Start-Bits nach Reset, pro Stufe', baseCost: 3, costMultiplier: 2.0, maxLevel: 10, effect: { type: 'start_bits_add', perLevel: 50000 } },
+        { id: 'sp_offline', name: 'Autonomie-Kern', icon: '🌙', description: '+25% Offline-Cap pro Stufe', baseCost: 4, costMultiplier: 1.7, maxLevel: 8, effect: { type: 'offline_cap_add', perLevel: 0.25 } },
+        { id: 'sp_cost', name: 'Schwarzmarkt-Kontakte', icon: '💰', description: 'Generator-Kosten -2% pro Stufe (max. -50%)', baseCost: 6, costMultiplier: 2.0, maxLevel: 10, effect: { type: 'cost_reduction_add', perLevel: 0.02 } },
+    ],
+
     levelThresholds: [0, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000],
     levelNames: ['Script Kiddie', 'Junior Hacker', 'Hacker', 'Elite Hacker', 'Cyber Ghost', 'Root God', 'Netz-Baron', 'Daten-Kaiser', 'Singularity'],
 
@@ -452,5 +469,8 @@ export const GameConfig = Object.freeze({
     },
     getUpgrade(id) {
         return this.upgrades.find(u => u.id === id) ?? null;
+    },
+    getPrestigeShopItem(id) {
+        return this.prestigeShop.find(i => i.id === id) ?? null;
     },
 });

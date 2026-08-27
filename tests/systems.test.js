@@ -7,6 +7,8 @@ import { EconomySystem } from '../js/systems/EconomySystem.js';
 import { AutomationSystem } from '../js/systems/AutomationSystem.js';
 import { UpgradeSystem } from '../js/systems/UpgradeSystem.js';
 import { PrestigeSystem } from '../js/systems/PrestigeSystem.js';
+import { PrestigeShopSystem } from '../js/systems/PrestigeShopSystem.js';
+import { ClickSystem } from '../js/systems/ClickSystem.js';
 import { assert, assertEquals, assertClose } from './helpers.js';
 
 function freshSystems() {
@@ -15,7 +17,9 @@ function freshSystems() {
     const automation = new AutomationSystem(bus, economy);
     const upgrades = new UpgradeSystem(bus, economy, automation);
     const prestige = new PrestigeSystem(bus, economy);
-    return { bus, economy, automation, upgrades, prestige };
+    const prestigeShop = new PrestigeShopSystem(bus, prestige);
+    const click = new ClickSystem(bus, economy);
+    return { bus, economy, automation, upgrades, prestige, prestigeShop, click };
 }
 
 export const tests = [
@@ -130,6 +134,106 @@ export const tests = [
             assertEquals(prestige.getStartBonus(), 25_500); // global_mult zählt hier nicht rein
             assertEquals(prestige.getActiveMilestones().length, 3);
             assertEquals(prestige.getNextMilestone(), null);
+        },
+    },
+    {
+        name: 'prestige: commit schreibt Root-Keys UND CPU-Chips gleichermaßen gut',
+        fn() {
+            const { economy, prestige } = freshSystems();
+            economy.totalEarned = 3_000_000;
+            const result = prestige.commit();
+            assertEquals(result.gain, 3);
+            assertEquals(prestige.points, 3);
+            assertEquals(prestige.chips, 3);
+            assertEquals(prestige.totalChipsEarned, 3);
+        },
+    },
+    {
+        name: 'prestigeShop: Kauf kostet Chips und sperrt bei fehlendem Guthaben',
+        fn() {
+            const { prestige, prestigeShop } = freshSystems();
+            prestige.chips = 1;
+            assert(!prestigeShop.canBuy('sp_gain'), 'sp_gain kostet 5, nur 1 Chip vorhanden');
+            assert(prestigeShop.canBuy('sp_click'), 'sp_click kostet 1');
+            assert(prestigeShop.buy('sp_click'));
+            assertEquals(prestige.chips, 0);
+            assertEquals(prestigeShop.getLevel('sp_click'), 1);
+            assert(!prestigeShop.buy('sp_click'), 'kein Guthaben mehr');
+        },
+    },
+    {
+        name: 'prestigeShop: click_mult_add wirkt additiv in ClickSystem und überlebt keinen Wipe außer resetHard',
+        fn() {
+            const { prestige, prestigeShop, click } = freshSystems();
+            prestige.chips = 100;
+            assertClose(click.getClickValue(), 1, 1e-9);
+            prestigeShop.buy('sp_click'); // +10%
+            assertClose(click.getClickValue(), 1.1, 1e-9);
+            prestigeShop.buy('sp_click'); // +10% weiteres Level, additiv gestapelt
+            assertClose(click.getClickValue(), 1.2, 1e-9);
+        },
+    },
+    {
+        name: 'prestigeShop: global_mult_add + cost_reduction_add wirken in AutomationSystem und überleben reset()',
+        fn() {
+            const { economy, automation, prestige, prestigeShop } = freshSystems();
+            economy.addBits(1_000_000);
+            automation.buy('script_kiddie');
+            const baseCost = automation.getCost('script_kiddie');
+            const basePerSec = automation.getTotalPerSec();
+
+            prestige.chips = 100;
+            prestigeShop.buy('sp_global'); // +5% global
+            prestigeShop.buy('sp_cost'); // -2% Kosten
+            assertClose(automation.getTotalPerSec(), basePerSec * 1.05, 1e-6);
+            assert(automation.getCost('script_kiddie') < baseCost, 'Kosten sollten sinken');
+
+            // Normaler Prestige-Reset (Automation.reset()) darf Shop-Boni NICHT löschen
+            automation.reset();
+            assertClose(automation.shopGlobalBonus, 0.05, 1e-9);
+            assertClose(automation.shopCostReductionBonus, 0.02, 1e-9);
+        },
+    },
+    {
+        name: 'prestigeShop: start_bits_add / offline_cap_add werden on-demand aus Leveln berechnet',
+        fn() {
+            const { prestige, prestigeShop } = freshSystems();
+            prestige.chips = 1000;
+            assertEquals(prestigeShop.getStartBitsBonus(), 0);
+            prestigeShop.buy('sp_start');
+            prestigeShop.buy('sp_start');
+            assertEquals(prestigeShop.getStartBitsBonus(), 100_000);
+            prestigeShop.buy('sp_offline');
+            assertClose(prestigeShop.getOfflineCapBonus(), 0.25, 1e-9);
+        },
+    },
+    {
+        name: 'prestigeShop: serialize/load stellt Level UND Effekte wieder her',
+        fn() {
+            const { prestige, prestigeShop } = freshSystems();
+            prestige.chips = 1000;
+            prestigeShop.buy('sp_global');
+            prestigeShop.buy('sp_global');
+            const data = JSON.parse(JSON.stringify(prestigeShop.serialize()));
+
+            const { prestige: p2, prestigeShop: s2, automation: a2 } = freshSystems();
+            s2.load(data);
+            assertEquals(s2.getLevel('sp_global'), 2);
+            assertClose(a2.shopGlobalBonus, 0.10, 1e-9);
+        },
+    },
+    {
+        name: 'prestigeShop: prestige_gain_mult erhöht getPendingGain für Root-Keys UND Chips',
+        fn() {
+            const { economy, prestige, prestigeShop } = freshSystems();
+            economy.totalEarned = 10_000_000;
+            assertEquals(prestige.getPendingGain(), 10);
+            prestige.chips = 1000;
+            prestigeShop.buy('sp_gain'); // +10%
+            assertEquals(prestige.getPendingGain(), 11);
+            const result = prestige.commit();
+            assertEquals(result.gain, 11);
+            assertEquals(prestige.chips, 1000 - 5 /* Kaufpreis sp_gain */ + 11);
         },
     },
 ];

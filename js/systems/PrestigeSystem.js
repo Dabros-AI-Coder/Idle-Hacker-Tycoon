@@ -14,6 +14,14 @@ export class PrestigeSystem {
         this.economy = economy;
         this.points = 0;          // permanente Root-Keys
         this.totalPrestiges = 0;
+        this.chips = 0;           // CPU-Chips — Zweitwährung, ausgebbar im Prestige-Shop
+        this.totalChipsEarned = 0;
+        /** Bonus aus Prestige-Shop 'prestige_gain_mult' (additiv, z.B. 0.3 = +30%) */
+        this.shopGainBonus = 0;
+
+        bus.on('prestigeshop:applied', ({ effect, delta }) => {
+            if (effect.type === 'prestige_gain_mult') this.shopGainBonus += delta;
+        });
     }
 
     getThreshold() { return GameConfig.prestige.threshold; }
@@ -44,10 +52,10 @@ export class PrestigeSystem {
         return bits;
     }
 
-    /** Punkte die man JETZT bei Prestige erhalten würde */
+    /** Punkte die man JETZT bei Prestige erhalten würde (Root-Keys UND CPU-Chips) */
     getPendingGain() {
         if (!this.canPrestige()) return 0;
-        return Math.floor(this.economy.totalEarned / this.getGainDivisor());
+        return Math.floor(this.economy.totalEarned / this.getGainDivisor() * (1 + this.shopGainBonus));
     }
 
     canPrestige() {
@@ -63,9 +71,11 @@ export class PrestigeSystem {
         const gain = this.getPendingGain();
         if (gain <= 0) return null;
         this.points += gain;
+        this.chips += gain;
+        this.totalChipsEarned += gain;
         this.totalPrestiges += 1;
         const multiplier = this.getMultiplier();
-        this.bus.emit('prestige:committed', { gain, points: this.points, multiplier, totalPrestiges: this.totalPrestiges });
+        this.bus.emit('prestige:committed', { gain, points: this.points, chips: this.chips, multiplier, totalPrestiges: this.totalPrestiges });
         this.bus.emit('prestige:changed', { points: this.points, multiplier, pendingGain: 0, totalPrestiges: this.totalPrestiges });
         return { gain, points: this.points, multiplier };
     }
@@ -79,17 +89,21 @@ export class PrestigeSystem {
             canPrestige: this.canPrestige(),
             activeMilestones: this.getActiveMilestones(),
             nextMilestone: this.getNextMilestone(),
+            chips: this.chips,
+            totalChipsEarned: this.totalChipsEarned,
         };
     }
 
     serialize() {
-        return { points: this.points, totalPrestiges: this.totalPrestiges };
+        return { points: this.points, totalPrestiges: this.totalPrestiges, chips: this.chips, totalChipsEarned: this.totalChipsEarned };
     }
 
     load(data) {
         if (!data) return;
         this.points = Number(data.points) || 0;
         this.totalPrestiges = Number(data.totalPrestiges) || 0;
+        this.chips = Number(data.chips) || 0;
+        this.totalChipsEarned = Number(data.totalChipsEarned) || 0;
         // Nach Load Multiplier broadcasten damit Click/Automation ihn übernehmen
         this.bus.emit('prestige:changed', { points: this.points, multiplier: this.getMultiplier(), pendingGain: this.getPendingGain(), totalPrestiges: this.totalPrestiges });
     }
@@ -98,6 +112,8 @@ export class PrestigeSystem {
         // Nur für kompletten Save-Wipe (Stats -> Fortschritt löschen)
         this.points = 0;
         this.totalPrestiges = 0;
+        this.chips = 0;
+        this.totalChipsEarned = 0;
         this.bus.emit('prestige:changed', { points: 0, multiplier: 1, pendingGain: 0, totalPrestiges: 0 });
     }
 }
