@@ -441,8 +441,8 @@ export class UIManager {
                     <span>${Formatter.formatPerSec(effectivePerSec)} /sec</span>
                     <span class="op">=</span>
                 </div>
-                <div class="offline-total">+${Formatter.formatFull(amount)} Bits</div>
-                <p style="color:var(--text-dim);font-size:0.72rem;margin-top:4px;">${Formatter.formatTime(seconds)} × ${Formatter.formatPerSec(effectivePerSec)} Bits/sec</p>
+                <div class="offline-total" title="${Formatter.formatFull(amount)} Bits">+${Formatter.formatBits(amount)} Bits</div>
+                <p style="color:var(--text-dim);font-size:0.72rem;margin-top:4px;word-break:break-all;">${Formatter.formatTime(seconds)} × ${Formatter.formatPerSec(effectivePerSec)} Bits/sec</p>
                 ${capNote}
                 <div class="modal-actions" style="margin-top:16px;">
                     <button class="btn-modal primary" data-action="collect">Bestätigen</button>

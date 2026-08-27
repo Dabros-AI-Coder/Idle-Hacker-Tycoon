@@ -803,7 +803,7 @@ body {
 .offline-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
 .offline-formula { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; color: var(--text-dim); margin-top: 10px; flex-wrap: wrap; }
 .offline-formula .op { color: var(--text-dim); opacity: 0.7; }
-.offline-total { font-size: clamp(1.8rem, 6vw, 2.4rem); font-weight: 900; color: var(--accent); text-align: center; margin-top: 8px; text-shadow: 0 2px 16px rgba(0,255,136,0.22); font-variant-numeric: tabular-nums; }
+.offline-total { font-size: clamp(1.4rem, 5vw, 2.2rem); font-weight: 900; color: var(--accent); text-align: center; margin-top: 8px; text-shadow: 0 2px 16px rgba(0,255,136,0.22); font-variant-numeric: tabular-nums; max-width: 100%; overflow-wrap: break-word; word-break: break-word; line-height: 1.15; padding: 0 4px; }
 
 /* Username Modal — milchiger Blur über In-Game */
 .modal-overlay.username-overlay {
