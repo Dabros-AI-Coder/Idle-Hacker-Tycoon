@@ -51,6 +51,30 @@ export class UIManager {
         try { localStorage.setItem('idle_hacker_upgrade_filter', v); } catch {}
     }
 
+    _getTierOrder() {
+        return (GameConfig.generatorCategories || []).map(c => c.id);
+    }
+    _isGeneratorTierLocked(catId) {
+        const order = this._getTierOrder();
+        const idx = order.indexOf(catId);
+        if (idx <= 0) return false; // tier1 immer offen
+        const prevCatId = order[idx - 1];
+        const prevGens = GameConfig.generators.filter(g => g.category === prevCatId);
+        if (prevGens.length === 0) return false;
+        // Alle Generatoren der Vorkategorie müssen ≥10 besitzen
+        for (const gen of prevGens) {
+            if (this.game.automation.getOwned(gen.id) < 10) return true;
+        }
+        return false;
+    }
+    _getTierUnlockText(catId) {
+        const order = this._getTierOrder();
+        const idx = order.indexOf(catId);
+        if (idx <= 0) return '';
+        const prevCat = (GameConfig.generatorCategories || []).find(c => c.id === order[idx - 1]);
+        return `Benötigt: alle ${prevCat ? prevCat.name : 'Vor-Tier'} Server 10×`;
+    }
+
     _bindElements() {
         const $ = (s) => document.getElementById(s);
         this.els = {
@@ -762,11 +786,26 @@ export class UIManager {
         if (uncategorized.length) categories.push({ id: 'other', name: 'Sonstige', icon: '📦', desc: '', items: uncategorized });
 
         const overviewHtml = `<div class="category-overview-grid">${categories.map(cat => {
+            const locked = this._isGeneratorTierLocked(cat.id);
             const ownedInCat = cat.items.reduce((a, s) => a + s.owned, 0);
             const perSecInCat = cat.items.reduce((a, s) => a + s.perSec, 0);
             const ownedTypes = cat.items.filter(s=>s.owned>0).length;
             const totalTypes = cat.items.length;
             const pct = totalTypes ? Math.round(ownedTypes/totalTypes*100) : 0;
+            if (locked) {
+                const unlockText = this._getTierUnlockText(cat.id);
+                return `<div class="category-overview-card locked" data-gen-cat="${cat.id}" title="${unlockText}">
+                    <span class="ov-icon">🔒</span>
+                    <div class="ov-name">${cat.name} <span style="font-size:0.7rem;opacity:0.7;">🔒</span></div>
+                    <div class="ov-desc">${unlockText}</div>
+                    <div class="ov-meta">
+                        <span>Gesperrt</span>
+                        <span class="ov-badge" style="opacity:0.5;">—</span>
+                    </div>
+                    <div class="item-progress" style="margin-top:4px;opacity:0.3;"><div class="item-progress-fill" style="width:0%"></div></div>
+                    <span class="ov-arrow">🔒 Gesperrt</span>
+                </div>`;
+            }
             return `<div class="category-overview-card" data-gen-cat="${cat.id}">
                 <span class="ov-icon">${cat.icon}</span>
                 <div class="ov-name">${cat.name}</div>
@@ -809,6 +848,11 @@ export class UIManager {
         }
         for (const card of this.els.generatorsList.querySelectorAll('[data-gen-cat]')) {
             card.addEventListener('click', () => {
+                if (this._isGeneratorTierLocked(card.dataset.genCat)) {
+                    this.toast(this._getTierUnlockText(card.dataset.genCat));
+                    haptic([10,20]); audio.buyFail();
+                    return;
+                }
                 this._showGeneratorCategory(card.dataset.genCat);
                 haptic(12); audio.click();
             });
@@ -819,6 +863,7 @@ export class UIManager {
     _showGeneratorCategory(catId) {
         const cat = (GameConfig.generatorCategories || []).find(c => c.id === catId);
         if (!cat) return;
+        if (this._isGeneratorTierLocked(catId)) { this.toast(this._getTierUnlockText(catId)); haptic([10,20]); return; }
         const allStates = this.game.automation.getAllStates();
         const totalPerSec = this.game.automation.getTotalPerSec();
         const catStates = allStates.filter(s => (s.def.category || 'tier1') === catId);

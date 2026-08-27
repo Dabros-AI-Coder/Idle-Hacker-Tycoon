@@ -1,5 +1,5 @@
 {
-  "version": "0.12.1",
+  "version": "0.13.0",
   "build": 20260827,
-  "notes": "UI: Netzwerk-Rack (einzelne Komponenten-LEDs) entfernt, nur noch Gesamt-Knoten im Header (vereinfachte Anzeige)"
+  "notes": "Tier-Gate: Server-Tiers brauchen je 10x alle Generatoren des Vor-Tiers, gesperrte Kategorien abgedunkelt + Lock-Overlay"
 }
